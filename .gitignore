@@ -1,0 +1,10 @@
+profil.json
+cv.pdf
+*.pdf
+offres976.db
+brouillons/
+candidatures976/
+__pycache__/
+*.eml
+.DS_Store
+*.pyc
