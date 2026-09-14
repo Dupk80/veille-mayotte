@@ -553,116 +553,116 @@ def cmd_scan(a):
 
 def cmd_prep(a):
     profil = charge_profil()
+    mobile = a.mobile or (sur_termux() and not a.eml)
+
     cv = BASE / profil.get("cv", "cv.pdf")
     if not cv.exists():
-        print(f"[!] CV {cv.name} introuvable (optionnel si email sur offre)", file=sys.stderr)
+        print(f"[!] CV introuvable ({cv.name})", file=sys.stderr)
         cv = None
 
     con = db()
-    q = "SELECT * FROM offres WHERE statut='nouveau' AND score >= ? ORDER BY score DESC"
-    if a.max:
-        q += f" LIMIT {int(a.max)}"
-    offres = con.execute(q, (a.min,)).fetchall()
-
-    if not offres:
-        print("[*] pas d'offre a preparer")
+    rows = con.execute(
+        "SELECT * FROM offres WHERE statut='nouveau' AND score>=? "
+        "ORDER BY score DESC LIMIT ?", (a.min, a.max)
+    ).fetchall()
+    if not rows:
+        print("[=] rien a preparer")
         con.close()
         return
 
-    print(f"[*] generation de {len(offres)} brouillon(s)...")
-    mobile = sur_termux() if not a.eml else False
-    if a.mobile:
-        mobile = True
-    if a.eml:
-        mobile = False
+    print(f"[*] {len(rows)} brouillon(s) — mode {'mobile' if mobile else 'eml'}, "
+          f"IA={'non' if a.no_ia else 'oui'}")
 
-    for o in offres:
+    for r in rows:
         try:
+            corps = None
             if mobile:
-                p, txt = brouillon_txt(o, profil, not a.no_ia)
-                print(f"  [{o['score']}] {p.name}")
+                p, corps = brouillon_txt(r, profil, ia=not a.no_ia)
             else:
-                p = brouillon(o, profil, cv, not a.no_ia)
-                print(f"  [{o['score']}] {p.name}")
+                p = brouillon(r, profil, cv, ia=not a.no_ia)
         except Exception as e:
-            print(f"  [!] {o['id']} : {e}", file=sys.stderr)
+            print(f"  [!] {r['id']} : {e}", file=sys.stderr)
             continue
-        con.execute("UPDATE offres SET statut='prepare' WHERE id=?", (o["id"],))
+        con.execute("UPDATE offres SET statut='prepare', lettre=? WHERE id=?",
+                    (corps, r["id"]))
+        con.commit()
+        flag = "" if r["courriel"] else "  (pas d'email → a postuler en ligne)"
+        print(f"  [{r['score']:>3}] {p.name}{flag}")
 
-    con.commit()
     if mobile:
-        print(f"\n[+] fichiers dans {MOBILE_DIR}/")
+        if cv:
+            cible = MOBILE_DIR / cv.name
+            if not cible.exists() or cible.stat().st_mtime < cv.stat().st_mtime:
+                shutil.copy2(cv, cible)
+            print(f"\n[+] CV copie dans {MOBILE_DIR}")
+        print(f"[+] {len(rows)} lettre(s) dans {MOBILE_DIR}")
+        print("[+] Enchaine : python3 veille_mayotte.py envoyer")
     else:
-        print(f"\n[+] fichiers dans {OUT_DIR}/")
+        print(f"\n[+] Fichiers dans {OUT_DIR}/")
     con.close()
 
 
-def cmd_envoyer(_):
-    if not sur_termux():
-        die("envoyer : commande mobile uniquement")
-
+def cmd_envoyer(a):
+    """Flux mobile : une offre a la fois. LM dans le presse-papier + mail ouvert."""
     con = db()
-    to_send = con.execute(
-        "SELECT * FROM offres WHERE statut='prepare' ORDER BY score DESC"
-    ).fetchall()
-
-    if not to_send:
-        print("[*] rien a envoyer")
+    r = con.execute(
+        "SELECT * FROM offres WHERE statut='prepare' AND courriel!='' "
+        "AND lettre IS NOT NULL ORDER BY score DESC LIMIT 1"
+    ).fetchone()
+    if not r:
+        print("[=] plus rien de pret a envoyer par mail.")
+        print("    (offres sans email : python3 veille_mayotte.py list --statut prepare)")
         con.close()
         return
 
-    for o in to_send:
-        print("\n" + "=" * 70)
-        print(f"[{o['score']}] {o['intitule']}")
-        print(f"    {o['entreprise']} | {o['lieu']} | {o['contrat']}")
-        print(f"    Ref : {o['id']}")
-        print(f"    Email : {o['courriel'] or '(aucun)'}")
-        print(f"    {o['url']}")
-        print("=" * 70)
+    objet = f"Candidature - {r['intitule']} (ref. {r['id']})"
+    print(f"\n[{r['score']} pts] {r['intitule']}")
+    print(f"  {r['entreprise']} — {r['lieu']} — {r['contrat']}")
+    print(f"  → {r['courriel']}\n")
+    print("-" * 58)
+    print(r["lettre"])
+    print("-" * 58)
 
-        if o["lettre"]:
-            print(o["lettre"])
-        else:
-            profil = charge_profil()
-            print(lettre(o, profil, False))
+    rep = input("\n[o] envoyer  [s] ignorer cette offre  [autre] plus tard : ")
+    rep = rep.strip().lower()
+    if rep == "s":
+        con.execute("UPDATE offres SET statut='ignore' WHERE id=?", (r["id"],))
+        con.commit()
+        con.close()
+        print("[=] ignoree, elle ne reviendra plus.")
+        return
+    if rep != "o":
+        con.close()
+        print("[=] laissee de cote, elle ressortira au prochain 'envoyer'.")
+        return
 
-        while True:
-            choix = input("\n[o]nvoyer / [i]gnorer / [p]lus tard ? ").strip().lower()
-            if choix == "o":
-                lettre_txt = o["lettre"] or lettre(con.execute(
-                    "SELECT * FROM offres WHERE id=?", (o["id"],)
-                ).fetchone(), charge_profil(), False)
-                if termux(["termux-clipboard-set"], lettre_txt):
-                    print("[+] lettre copiee au presse-papiers")
-                mailto = f"mailto:{o['courriel']}?subject=Candidature+-+{o['intitule']}"
-                termux(["termux-open-url", mailto])
-                con.execute("UPDATE offres SET statut='envoye' WHERE id=?", (o["id"],))
-                print("[+] marque comme envoye")
-                break
-            elif choix == "i":
-                con.execute("UPDATE offres SET statut='ignore' WHERE id=?", (o["id"],))
-                print("[+] marque comme ignore")
-                break
-            elif choix == "p":
-                print("[*] plus tard")
-                break
+    if termux(["termux-clipboard-set"], entree=r["lettre"]):
+        print("[+] lettre copiee dans le presse-papier")
+    else:
+        print("[!] termux-api absent : copie la lettre depuis le .txt")
 
+    url = ("mailto:" + urllib.parse.quote(r["courriel"])
+           + "?subject=" + urllib.parse.quote(objet))
+    if not termux(["termux-open-url", url]):
+        print(f"[!] ouvre manuellement : {url}")
+
+    print("\n  Dans l'appli mail : coller + joindre le CV depuis")
+    print(f"  {MOBILE_DIR.name}/, puis relance 'envoyer' pour la suivante.")
+    con.execute("UPDATE offres SET statut='envoye' WHERE id=?", (r["id"],))
     con.commit()
     con.close()
 
 
 def cmd_list(a):
     con = db()
-    statuts = a.statut if a.statut else ["nouveau", "prepare", "envoye", "ignore"]
-    q = "SELECT * FROM offres WHERE statut IN ({}) ORDER BY vue_le DESC"
-    q = q.format(",".join("?" * len(statuts)))
-    rows = con.execute(q, statuts).fetchall()
-
-    if not rows:
-        print("[*] aucune offre avec ces filtres")
+    if a.statut:
+        rows = con.execute("SELECT * FROM offres WHERE statut=? ORDER BY score DESC",
+                           (a.statut,)).fetchall()
     else:
-        tableau(rows)
-        print(f"\n[*] total : {len(rows)} offre(s)")
+        rows = con.execute("SELECT * FROM offres ORDER BY score DESC").fetchall()
+    tableau(rows)
+    for s, n in con.execute("SELECT statut, COUNT(*) FROM offres GROUP BY statut"):
+        print(f"  {s}: {n}")
     con.close()
 
 
@@ -681,37 +681,43 @@ def cmd_ignore(a):
 #  Main
 # --------------------------------------------------------------------------- #
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Veille des offres d'emploi Mayotte")
     subcmds = parser.add_subparsers(dest="cmd", required=True)
 
     sub_init = subcmds.add_parser("init", help="Cree profil.json d'exemple")
-    sub_init.set_defaults(func=cmd_init)
+    sub_init.set_defaults(f=cmd_init)
 
     sub_scan = subcmds.add_parser("scan", help="Recupere et score les offres 976")
     sub_scan.add_argument("--dept", default=DEPT)
-    sub_scan.add_argument("--rome", help="tech (defaut) ou liste ROME personnalisee")
-    sub_scan.add_argument("--min", type=int, default=0)
-    sub_scan.set_defaults(func=cmd_scan)
+    sub_scan.add_argument("--rome", nargs="?", const="tech", default=None,
+                          help="tech (defaut) ou liste ROME personnalisee")
+    sub_scan.add_argument("--min", type=int, default=8)
+    sub_scan.set_defaults(f=cmd_scan)
 
     sub_prep = subcmds.add_parser("prep", help="Genere les brouillons")
-    sub_prep.add_argument("--min", type=int, default=0)
-    sub_prep.add_argument("--max", type=int, help="max offres a traiter")
+    sub_prep.add_argument("--min", type=int, default=8)
+    sub_prep.add_argument("--max", type=int, default=25, help="max offres a traiter")
     sub_prep.add_argument("--no-ia", action="store_true", help="utilise le modele simple")
     sub_prep.add_argument("--mobile", action="store_true", help="force mode mobile")
     sub_prep.add_argument("--eml", action="store_true", help="force mode .eml")
-    sub_prep.set_defaults(func=cmd_prep)
+    sub_prep.set_defaults(f=cmd_prep)
 
-    sub_envoyer = subcmds.add_parser("envoyer", help="Envoie les brouillons (mobile)")
-    sub_envoyer.set_defaults(func=cmd_envoyer)
+    sub_envoyer = subcmds.add_parser("envoyer", help="Envoie un brouillon (mobile)")
+    sub_envoyer.set_defaults(f=cmd_envoyer)
 
     sub_list = subcmds.add_parser("list", help="Historique")
-    sub_list.add_argument("--statut", action="append", help="filtrer par statut")
-    sub_list.set_defaults(func=cmd_list)
+    sub_list.add_argument("--statut", choices=["nouveau", "prepare", "envoye", "ignore"],
+                          help="filtrer par statut")
+    sub_list.set_defaults(f=cmd_list)
 
     sub_ignore = subcmds.add_parser("ignore", help="Marquer une offre comme ignoree")
     sub_ignore.add_argument("id")
-    sub_ignore.set_defaults(func=cmd_ignore)
+    sub_ignore.set_defaults(f=cmd_ignore)
 
     a = parser.parse_args()
-    a.func(a)
+    a.f(a)
+
+
+if __name__ == "__main__":
+    main()
