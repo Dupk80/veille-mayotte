@@ -31,7 +31,7 @@ Application Android qui affiche **combien de temps il reste avant de quitter le 
 - **Pauses** : autant que tu veux (nom, heure, durée). L'appli affiche la prochaine pause et le **travail effectif restant** (pauses non comptées).
 - **Trajet bureau → maison** : ton compagnon avance sur la barre au fil de la journée.
 - **Ciel animé** selon l'heure (aube, jour, crépuscule, nuit étoilée) : soleil, lune et nuages.
-- **Horaires réglables** : début, fin, jours travaillés. Les horaires de nuit sont gérés (fin le lendemain).
+- **Horaires réglables** : début, fin, jours travaillés, et **horaires différents pour chaque jour** si tu veux (ex. vendredi 8h–12h). Les horaires de nuit sont gérés (fin le lendemain).
 
 ## 🔔 Notifications
 

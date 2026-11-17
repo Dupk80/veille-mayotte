@@ -76,8 +76,15 @@ final class Scheduler {
         int idx = day.get(Calendar.DAY_OF_WEEK) - 1; // 0 = dimanche
         if (days == null || !days.optBoolean(idx, false)) return null;
         Shift sh = new Shift();
-        sh.start = at(day, hm(s.optString("start", "08:00")));
-        sh.end = at(day, hm(s.optString("end", "17:00")));
+        String start = s.optString("start", "08:00"), end = s.optString("end", "17:00");
+        JSONArray week = s.optJSONArray("week");
+        if (s.optBoolean("perDay", false) && week != null && week.optJSONObject(idx) != null) {
+            JSONObject w = week.optJSONObject(idx);
+            start = w.optString("start", start);
+            end = w.optString("end", end);
+        }
+        sh.start = at(day, hm(start));
+        sh.end = at(day, hm(end));
         if (sh.end <= sh.start) sh.end += 24L * 3600_000L; // travail de nuit
         JSONArray br = s.optJSONArray("breaks");
         if (br != null) {
