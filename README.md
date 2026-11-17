@@ -2,6 +2,14 @@
 
 Application Android qui affiche **combien de temps il reste avant de quitter le travail et rentrer à la maison**, avec un petit compagnon animé qui vit ta journée avec toi.
 
+<p>
+<img src="docs/captures/work.png" width="200" alt="Au travail">
+<img src="docs/captures/break.png" width="200" alt="En pause">
+<img src="docs/captures/done.png" width="200" alt="Journée terminée">
+<img src="docs/captures/night.png" width="200" alt="La nuit">
+<img src="docs/captures/settings.png" width="200" alt="Réglages">
+</p>
+
 ## 📲 Installer
 
 1. Télécharge **[`apk/BientotLaMaison.apk`](apk/BientotLaMaison.apk)** sur ton téléphone Android (8.0 ou plus récent).
