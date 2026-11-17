@@ -18,7 +18,9 @@ import android.provider.Settings;
 import android.util.Base64;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -77,9 +79,19 @@ public class MainActivity extends Activity {
             lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             w.setAttributes(lp);
         }
-        web.setOnApplyWindowInsetsListener((v, ins) -> {
+        View content = findViewById(android.R.id.content);
+        content.setOnApplyWindowInsetsListener((v, ins) -> {
             sysTop = ins.getSystemWindowInsetTop();
-            sysBottom = ins.getSystemWindowInsetBottom();
+            int bottom = ins.getSystemWindowInsetBottom();
+            float d = getResources().getDisplayMetrics().density;
+            // Clavier ouvert : on raccourcit la WebView pour que le champ reste visible
+            int ime = Build.VERSION.SDK_INT >= 30 ? ins.getInsets(WindowInsets.Type.ime()).bottom : (bottom > 120 * d ? bottom : 0);
+            sysBottom = ime > 0 ? 0 : bottom;
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) web.getLayoutParams();
+            if (lp != null && lp.bottomMargin != ime) {
+                lp.bottomMargin = ime;
+                web.setLayoutParams(lp);
+            }
             v.post(this::pushInsets);
             return ins;
         });
