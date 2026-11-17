@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.dupk.maison'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.dupk.maison"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // Clé de signature fixe : permet d'installer les mises à jour par-dessus
+    // l'ancienne version sans désinstaller l'application.
+    signingConfigs {
+        release {
+            storeFile file("../keystore/maison-release.jks")
+            storePassword "maison2026"
+            keyAlias "maison"
+            keyPassword "maison2026"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

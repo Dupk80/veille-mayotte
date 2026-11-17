@@ -1,10 +1,8 @@
-profil.json
-cv.pdf
-*.pdf
-offres976.db
-brouillons/
-candidatures976/
-__pycache__/
-*.eml
+.gradle/
+build/
+app/build/
+local.properties
+.idea/
+*.iml
 .DS_Store
-*.pyc
+captures/

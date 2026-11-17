@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Petite maison avec un chat qui dépasse -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- toit -->
+    <path android:fillColor="#FFE5533D"
+        android:pathData="M54,22 L84,46 C85.5,47.2 84.6,49.5 82.7,49.5 L25.3,49.5 C23.4,49.5 22.5,47.2 24,46 Z"/>
+    <!-- maison -->
+    <path android:fillColor="#FFFFF6E9"
+        android:pathData="M31,47 L77,47 L77,80 C77,83 75,85 72,85 L36,85 C33,85 31,83 31,80 Z"/>
+    <!-- oreilles du chat -->
+    <path android:fillColor="#FFF4A259" android:pathData="M41,62 L43,48 L52,56 Z"/>
+    <path android:fillColor="#FFF4A259" android:pathData="M67,62 L65,48 L56,56 Z"/>
+    <!-- tête -->
+    <path android:fillColor="#FFF4A259"
+        android:pathData="M54,54 C64,54 70,61 70,70 C70,79 63,85 54,85 C45,85 38,79 38,70 C38,61 44,54 54,54 Z"/>
+    <!-- yeux -->
+    <path android:fillColor="#FF2B2B33" android:pathData="M47,68m-2.6,0a2.6,3 0,1 1,5.2 0a2.6,3 0,1 1,-5.2 0"/>
+    <path android:fillColor="#FF2B2B33" android:pathData="M61,68m-2.6,0a2.6,3 0,1 1,5.2 0a2.6,3 0,1 1,-5.2 0"/>
+    <!-- nez -->
+    <path android:fillColor="#FFE5533D" android:pathData="M52,74 L56,74 L54,76.5 Z"/>
+    <!-- joues -->
+    <path android:fillColor="#66FF7B7B" android:pathData="M43,76m-3,0a3,2 0,1 1,6 0a3,2 0,1 1,-6 0"/>
+    <path android:fillColor="#66FF7B7B" android:pathData="M65,76m-3,0a3,2 0,1 1,6 0a3,2 0,1 1,-6 0"/>
+</vector>
