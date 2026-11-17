@@ -6,7 +6,7 @@
    sprite dessiné à la main. Toutes les couleurs de pelage fonctionnent.
    ===================================================================== */
 const Pets = (() => {
-  const W = 29, H = 31, N = W * H, CX = 14.5;
+  const W = 29, H = 31, N = W * H, CX = 14.5, PAD = 6;
 
   const INFO = {
     cat: { name: 'Chat', cry: 'Miaou', furs: [
@@ -338,11 +338,51 @@ const Pets = (() => {
       p.px(14, my, mc); p.px(13, my + 1, mc); p.px(15, my + 1, mc); p.px(14, my + 2, mc);
     } else if (mouth === 'sleep') {
       p.px(14, my, mc);
+    } else if (mouth === 'sad') {
+      p.px(13, my + 1, mc); p.px(14, my, mc); p.px(15, my + 1, mc);
     }
     // moustaches du chat
     if (sp === 'cat') {
       const wc = U.mix(P.fur, '#160b26', 0.8);
       for (const y of [ny - 1, ny + 1]) { p.px(2, y, wc); p.px(3, y, wc); p.px(25, y, wc); p.px(26, y, wc); }
+    }
+  }
+
+  /* ---------------- Accessoires (boutique) ---------------- */
+  const AP = { p: '#ff7aa8', P: '#ffb3cf', K: '#c8467a', r: '#ff4a5a', R: '#ff8a8a', y: '#ffd34e', Y: '#fff2a8', k: '#2a1d3d',
+    w: '#ffffff', d: '#3a4a6a', b: '#3f7fe0', B: '#2a5ab0', g: '#5fd38a', o: '#ff9a3c', c: '#5ff0d8', v: '#b98cff' };
+  const ACC = {
+    bow: { kind: 'side', map: ['pp...pp', 'pPp.pPp', 'pPPKPPp', 'pPp.pPp', 'pp...pp'] },
+    flower: { kind: 'side', map: ['..r.r..', '.rRrRr.', 'rRRyRRr', '.rRrRr.', '..r.r..'] },
+    glasses: { kind: 'eyes', map: ['kkkk.....kkkk', 'kwdkkkkkkkwdk', 'kddk.....kddk', '.kk.......kk.'] },
+    cap: { kind: 'hat', map: ['....bbbbb....', '...bwbbbbb...', '..bbbbbbbbb..', '..BBBBBBBBBBB'] },
+    party: { kind: 'hat', map: ['...Y...', '..YyY..', '...p...', '..pPp..', '..vvv..', '.pPpPp.', '.vvvvv.', 'pPpPpPp'] },
+    crown: { kind: 'hat', map: ['y...y...y', 'yy.yYy.yy', 'yyyyyyyyy', 'yryycyyry', 'YYYYYYYYY'] },
+  };
+  const BRIM = { cat: 8, dog: 8, bunny: 9, fox: 8, panda: 8, hamster: 9 };
+  const accCache = {};
+  function accSprite(id) {
+    if (!accCache[id]) accCache[id] = U.outlined(U.sprite(ACC[id].map, AP), '#1e1236');
+    return accCache[id];
+  }
+  function drawAcc(x, id, sp, f) {
+    const a = ACC[id];
+    if (!a) return;
+    const s = accSprite(id), hy = f.hy || 0;
+    if (a.kind === 'hat') x.drawImage(s, Math.round(CX - s.width / 2), PAD + BRIM[sp] + hy + 1 - s.height);
+    else if (a.kind === 'eyes') x.drawImage(s, 7, PAD + 13 + hy + (sp === 'bunny' || sp === 'hamster' ? 1 : 0));
+    else x.drawImage(s, 17, PAD + BRIM[sp] + hy - 5);
+  }
+  // Taches de saleté (quand il a besoin d'un bain)
+  const SPOTS = [[9, 23], [19, 25], [12, 11], [18, 13], [15, 26], [8, 17], [21, 19], [11, 27]];
+  function drawDirt(x, base, level, hy) {
+    const d = base.getContext('2d').getImageData(0, 0, W, H).data;
+    const n = level >= 2 ? SPOTS.length : 4;
+    for (let i = 0; i < n; i++) {
+      const [sx, sy0] = SPOTS[i], sy = sy0 < 21 ? sy0 + hy : sy0;
+      if (sy < 0 || sy >= H || d[(sy * W + sx) * 4 + 3] === 0) continue;
+      x.fillStyle = '#7a5a3a'; x.fillRect(sx, PAD + sy, 2, 1);
+      x.fillStyle = '#9a7a52'; x.fillRect(sx, PAD + sy + 1, 1, 1);
     }
   }
 
@@ -356,25 +396,30 @@ const Pets = (() => {
     face(p, f, P, sp, b);
     return p.canvas();
   }
-  function get(sp, fi, f = {}) {
+  // Sprite final : 29 x 37 (6 pixels de marge en haut pour les chapeaux)
+  function get(sp, fi, f = {}, acc = '', dirt = 0) {
     if (!INFO[sp]) sp = 'cat';
-    const key = [sp, fi, f.pose || '', f.hy || 0, f.feet || 0, f.tail || 0, f.ear || 0, f.eyes || 'open', f.eyeDx || 0, f.mouth || 'w'].join('|');
+    const key = [sp, fi, f.pose || '', f.hy || 0, f.feet || 0, f.tail || 0, f.ear || 0, f.eyes || 'open', f.eyeDx || 0, f.mouth || 'w', acc || '', dirt | 0].join('|');
     let c = cache.get(key);
     if (!c) {
-      c = build(sp, fi, f);
+      const base = build(sp, fi, f), out = U.canvas(W, H + PAD);
+      out.x.drawImage(base, 0, PAD);
+      if (dirt) drawDirt(out.x, base, dirt, f.hy || 0);
+      if (acc) drawAcc(out.x, acc, sp, f);
+      c = out.c;
       cache.set(key, c);
-      if (cache.size > 900) cache.delete(cache.keys().next().value);
+      if (cache.size > 1200) cache.delete(cache.keys().next().value);
     }
     return c;
   }
 
   // Grande image du compagnon (icône de notification, partage…)
-  function portraitPNG(sp, fi, scale = 8) {
-    const s = get(sp, fi, { eyes: 'happy', mouth: 'open' });
-    const pad = 3, { c, x } = U.canvas((W + pad * 2) * scale, (H + pad * 2) * scale);
-    x.drawImage(s, pad * scale, pad * scale, W * scale, H * scale);
+  function portraitPNG(sp, fi, scale = 8, acc = '') {
+    const s = get(sp, fi, { eyes: 'happy', mouth: 'open' }, acc);
+    const pad = 2, { c, x } = U.canvas((s.width + pad * 2) * scale, (s.height + pad * 2) * scale);
+    x.drawImage(s, pad * scale, pad * scale, s.width * scale, s.height * scale);
     return c.toDataURL('image/png');
   }
 
-  return { W, H, INFO, get, pal, portraitPNG, names: Object.keys(INFO) };
+  return { W, H: H + PAD, PAD, INFO, get, pal, portraitPNG, names: Object.keys(INFO), ACC: Object.keys(ACC) };
 })();

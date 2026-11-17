@@ -49,6 +49,20 @@ final class Notifier {
         return h + " h " + (m < 10 ? "0" : "") + m;
     }
 
+    /** Besoins du compagnon (même calcul simplifié que l'interface). */
+    static String careHint(JSONObject s, String pet) {
+        JSONObject care = s.optJSONObject("care");
+        if (care == null) return null;
+        double h = Math.max(0, (System.currentTimeMillis() - care.optLong("t", System.currentTimeMillis())) / 3600000.0);
+        double food = care.optDouble("food", 80) - h * 7;
+        double joy = care.optDouble("joy", 80) - h * 4.5;
+        double clean = care.optDouble("clean", 80) - h * 3;
+        if (food < 30) return "J'ai un petit creux… tu viens me donner à manger ?";
+        if (joy < 35) return "Je m'ennuie… on fait un mini-jeu ensemble ?";
+        if (clean < 25) return "Je suis tout crotté… un petit bain ?";
+        return null;
+    }
+
     static void show(Context c, String type, String label, long shiftEnd, long breakEnd) {
         ensureChannel(c);
         JSONObject s = Scheduler.settings(c);
@@ -61,6 +75,7 @@ final class Notifier {
         String e = Pets.emoji(pet), cry = Pets.cry(pet);
         long left = shiftEnd - System.currentTimeMillis();
         boolean petStyle = !"classic".equals(style);
+        String hint = petStyle ? careHint(s, pet) : null;
 
         String title, body;
         switch (type) {
@@ -71,7 +86,7 @@ final class Notifier {
                 break;
             case Scheduler.BREAK_START:
                 title = petStyle ? e + " " + cry + " ! C'est la pause !" : "Début de pause : " + label;
-                body = petStyle ? label + " jusqu'à " + hhmm(breakEnd) + ". Lâche l'écran, je garde ta place 💤"
+                body = petStyle ? label + " jusqu'à " + hhmm(breakEnd) + ". " + (hint != null ? hint : "Viens jouer avec moi pendant la pause !")
                         : label + " jusqu'à " + hhmm(breakEnd) + ".";
                 break;
             case Scheduler.BREAK_END:
@@ -96,7 +111,7 @@ final class Notifier {
                 break;
             default: // PERIODIC
                 title = petStyle ? e + " Encore " + dur(left) + " !" : "Il reste " + dur(left);
-                body = petStyle ? Pets.cheer() + " " + Pets.flavor(pet) : "Fin de journée à " + hhmm(shiftEnd) + ".";
+                body = petStyle ? (hint != null ? hint : Pets.cheer() + " " + Pets.flavor(pet)) : "Fin de journée à " + hhmm(shiftEnd) + ".";
         }
 
         Intent open = new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);

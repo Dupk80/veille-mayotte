@@ -11,14 +11,33 @@
   <canvas id="scene"></canvas>
   <div id="topbar">
     <div class="shadowtxt"><div class="hello" id="hello">Bonjour</div><div class="date" id="date"></div></div>
-    <button class="pxbtn" id="btnSettings" aria-label="Réglages"><i class="ico" data-ico="gear"></i></button>
+    <div class="topright">
+      <div class="wallet pxbox"><i class="ico" data-ico="star"></i><span id="starsN">0</span></div>
+      <button class="pxbtn" id="btnSettings" aria-label="Réglages"><i class="ico" data-ico="gear"></i></button>
+    </div>
   </div>
 </div>
 <div class="scene-edge"></div>
 
 <main id="hud">
+  <div class="care pxbox" id="care">
+    <div class="cstats">
+      <div class="cstat" title="Ventre"><i class="ico" data-ico="drum"></i><div class="sbar food" id="sFood"><b></b></div></div>
+      <div class="cstat" title="Joie"><i class="ico" data-ico="smile"></i><div class="sbar joy" id="sJoy"><b></b></div></div>
+      <div class="cstat" title="Propreté"><i class="ico" data-ico="drop"></i><div class="sbar clean" id="sClean"><b></b></div></div>
+    </div>
+    <div class="clevel"><i class="ico" data-ico="heart"></i><span id="lvlTxt">Amitié niv. 1</span><div class="sbar xp" id="sXp"><b></b></div></div>
+    <div class="acts">
+      <button class="act pxbtn" data-act="feed"><i class="ico" data-ico="drum"></i><span>Nourrir</span></button>
+      <button class="act pxbtn" data-act="bath"><i class="ico" data-ico="bubble"></i><span>Laver</span></button>
+      <button class="act pxbtn" data-act="ball"><i class="ico" data-ico="ball"></i><span>Balle</span></button>
+      <button class="act pxbtn gold" data-act="games"><i class="ico" data-ico="pad"></i><span>Jeux</span></button>
+      <button class="act pxbtn" data-act="shop"><i class="ico" data-ico="shop"></i><span>Boutique</span></button>
+    </div>
+  </div>
+
   <div class="dialog pxbox paper">
-    <div class="portrait pxbox"><canvas id="portrait" width="29" height="31"></canvas></div>
+    <div class="portrait pxbox"><canvas id="portrait" width="29" height="37"></canvas></div>
     <div class="dlg-main"><div class="dlg-name" id="dlgName">Minou</div><div class="dlg-text" id="dlgText"></div></div>
     <i class="ico dlg-arrow" data-ico="down"></i>
   </div>
@@ -108,7 +127,37 @@
       <div class="tg">Vibrer quand je le caresse<label class="tog"><input type="checkbox" id="vibrate"><span></span></label></div>
       <div class="tg">Afficher les secondes<label class="tog"><input type="checkbox" id="showSeconds"><span></span></label></div>
     </div>
-    <div class="foot">Bientôt la Maison · v2.0 · pixel-art original</div>
+    <div class="foot">Bientôt la Maison · v2.1 · pixel-art original</div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="mbox pxbox">
+    <div class="mhead"><b id="mTitle">Nourrir</b><span class="wallet pxbox"><i class="ico" data-ico="star"></i><span id="mStars">0</span></span><button class="pxbtn" id="mClose" aria-label="Fermer">X</button></div>
+    <div class="mnote" id="mNote"></div>
+    <div class="mgrid" id="mGrid"></div>
+  </div>
+</div>
+
+<div class="sheet" id="gamesSheet">
+  <div class="top"><h2 id="gTitle">Mini-jeux</h2><button class="pxbtn gold" id="gClose">Fermer</button></div>
+  <div class="inner" id="gMenu">
+    <div class="hint2" style="margin-top:12px">Joue avec ton compagnon pour gagner des étoiles, puis dépense-les en friandises et accessoires !</div>
+    <div class="gcards" id="gCards"></div>
+  </div>
+  <div id="gPlay" style="display:none">
+    <div class="ghud"><span class="gscore" id="gScore">0</span><span class="ginfo" id="gInfo"></span><span class="glives" id="gLives"></span></div>
+    <div class="gwrap"><canvas id="gCanvas"></canvas><div class="gmsg pxbox paper" id="gMsg"></div></div>
+  </div>
+  <div class="inner" id="gEnd" style="display:none">
+    <div class="gres pxbox paper">
+      <div class="gres-t" id="gResTitle">Bravo !</div>
+      <canvas id="gResPet" width="29" height="37"></canvas>
+      <div class="gres-s"><span>Score</span><b id="gResScore">0</b></div>
+      <div class="gres-b" id="gResBest"></div>
+      <div class="gres-r" id="gResReward"></div>
+    </div>
+    <div class="two" style="margin-top:14px"><button class="pxbtn gold" id="gAgain">Rejouer</button><button class="pxbtn" id="gBack">Autres jeux</button></div>
   </div>
 </div>
 
@@ -116,8 +165,10 @@
 
 <script src="js/util.js"></script>
 <script src="js/pets.js"></script>
+<script src="js/care.js"></script>
 <script src="js/scene.js"></script>
 <script src="js/hud.js"></script>
+<script src="js/games.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

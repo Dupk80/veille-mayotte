@@ -17,6 +17,8 @@ const Scene = (() => {
   let parts = [], stars = [], clouds = [], birds = [], crits = [], rockets = [], sparks = [], shoots = [];
   let dolphin = null, nextDolphin = 12, nextBird = 4, flash = 0, nextRocket = 0, sea = null;
   const hooks = { tapPet: null, sfx: null };
+  let care = { acc: '', dirt: 0, mood: 'ok' };
+  let meal = null, ball = null, bath = null, nextStink = 0;
   const RND = Math.random;
 
   /* ---------------- Outils de dessin ---------------- */
@@ -631,7 +633,7 @@ const Scene = (() => {
     return L.endX + (st.kind === 'done' ? 0 : -1);
   }
   function wantsSleep() {
-    if (T < pet.awakeUntil) return false;
+    if (T < pet.awakeUntil || meal || ball || bath) return false;
     const night = tod.night > 0.6;
     if (st.kind === 'before') return true;
     if (st.kind === 'off') return night || (tod.h > 13 && tod.h < 15);
@@ -652,6 +654,9 @@ const Scene = (() => {
     }
     let goal = a + (sleeping || celebrating() ? 0 : pet.wander);
     if (pet.tx !== null) { if (T < pet.txUntil) goal = pet.tx; else pet.tx = null; }
+    if (meal) goal = meal.x - meal.side * 12;
+    if (ball) goal = ball.state === 'held' ? a : ball.x;
+    if (bath) goal = pet.x;
     goal = U.clamp(goal, L.startX - 12, L.endX + 14);
     if (pet.hop) {
       const h = pet.hop;
@@ -666,11 +671,11 @@ const Scene = (() => {
     } else if (!sleeping) {
       const d = goal - pet.x;
       if (Math.abs(d) > 1.5 && T > pet.restUntil) {
-        const far = Math.abs(d) > 30;
+        const far = Math.abs(d) > 30 || (ball && ball.state !== 'held' && Math.abs(d) > 8);
         pet.hop = { x0: pet.x, x1: pet.x + Math.sign(d) * Math.min(Math.abs(d), far ? 9 : 5), t: 0, dur: far ? 0.24 : 0.34, h: far ? 4 : 3 };
         pet.dir = Math.sign(d);
-        if (!far) pet.restUntil = T + 0.12 + RND() * 0.3;
-      } else if (celebrating() && T > pet.nextJump) {
+        if (!far && !ball && !meal) pet.restUntil = T + 0.12 + RND() * 0.3;
+      } else if (celebrating() && !meal && !ball && !bath && T > pet.nextJump) {
         pet.jumpT = pet.jumpDur; pet.nextJump = T + 0.9 + RND() * 0.7;
         hearts(pet.x, L.path - 30, 2);
       }
@@ -681,13 +686,92 @@ const Scene = (() => {
     if (T > pet.nextLook) { pet.look = RND() < 0.6 ? 0 : RND() < 0.5 ? -1 : 1; pet.nextLook = T + 1.5 + RND() * 3; }
     if (sleeping && T > pet.nextZ) { addP({ k: 'z', x: pet.x + 6, y: L.path - 26, vx: 4, vy: -7, life: 2.2 }); pet.nextZ = T + 1.3; }
     if (st.kind === 'work' && st.inBreak >= 0 && near && T > pet.nextNom) { pet.nomUntil = T + 0.5; pet.nextNom = T + 2.5 + RND() * 2; if (RND() < 0.35) addP({ k: 'note', x: pet.x + 8, y: L.path - 30, vx: 3, vy: -9, life: 1.6 }); }
-    if (T > pet.nextEmote && !sleeping) {
+    updateActivities(dt);
+    if (care.dirt && !bath && T > nextStink) {
+      nextStink = T + (care.dirt > 1 ? 0.5 : 0.9);
+      addP({ k: 'px', x: pet.x + (RND() * 16 - 8), y: L.path - 8 - RND() * 14, vx: Math.sin(T * 5) * 4, vy: -6, g: 0, life: 1.4, c: '#a8c86a' });
+    }
+    if (T > pet.nextEmote && !sleeping && !meal && !bath) {
       pet.nextEmote = T + 9 + RND() * 9;
-      if (st.kind === 'work' && st.inBreak >= 0) emote(RND() < 0.5 ? 'coffee' : 'heart');
+      if (care.mood === 'hungry') emote('food');
+      else if (care.mood === 'dirty') emote('bubble');
+      else if (care.mood === 'bored' && st.kind !== 'work') emote('sad');
+      else if (st.kind === 'work' && st.inBreak >= 0) emote(RND() < 0.5 ? 'coffee' : 'heart');
       else if (st.almost) emote('excl');
       else if (celebrating()) emote('heart');
       else if (RND() < 0.5) emote(RND() < 0.5 ? 'note' : 'heart');
     }
+  }
+  function crumbs(x, y, c, n = 4) { for (let i = 0; i < n; i++) addP({ k: 'px', x: x + RND() * 4 - 2, y, vx: (RND() - 0.5) * 18, vy: -8 - RND() * 10, g: 60, life: 0.6, c }); }
+  function updateActivities(dt) {
+    // repas
+    if (meal) {
+      const m = meal, floor = L.path - m.spr.height + 2;
+      if (!m.landed) {
+        m.vy += 260 * dt; m.y += m.vy * dt;
+        if (m.y >= floor) { m.y = floor; if (m.vy > 50) { m.vy = -m.vy * 0.35; dust(m.x, 2); } else { m.landed = true; m.vy = 0; } }
+      } else if (!pet.hop && Math.abs(pet.x - (m.x - m.side * 12)) < 2.5 && T > m.next) {
+        m.bites++; m.next = T + 0.6; pet.nomUntil = T + 0.35;
+        crumbs(m.x, L.path - 6, m.col, 5);
+        if (hooks.sfx) hooks.sfx('blip');
+        if (m.bites >= 3) {
+          if (m.fav) { pet.jumpT = pet.jumpDur; hearts(pet.x, L.path - 30, 7); emote('heart'); }
+          else { pet.happyUntil = T + 1.2; hearts(pet.x, L.path - 28, 3); }
+          const cb = m.cb; meal = null; if (cb) cb();
+        }
+      }
+    }
+    // balle
+    if (ball) {
+      const b = ball, ground = L.path - 3;
+      if (b.state === 'fly') {
+        b.vy += 220 * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+        if (b.x < L.startX - 10 || b.x > L.endX + 14) { b.vx = -b.vx * 0.6; b.x = U.clamp(b.x, L.startX - 10, L.endX + 14); }
+        if (b.y >= ground) {
+          b.y = ground;
+          if (Math.abs(b.vy) > 25) { b.vy = -b.vy * 0.45; b.vx *= 0.6; if (hooks.sfx) hooks.sfx('step'); }
+          else { b.vy = 0; b.vx *= Math.pow(0.02, dt); if (Math.abs(b.vx) < 3) b.vx = 0; }
+        }
+        if (b.y >= ground - 0.5 && Math.abs(pet.x - b.x) < 6 && !pet.hop) { b.state = 'held'; pet.happyUntil = T + 0.6; if (hooks.sfx) hooks.sfx('blip'); }
+      } else if (b.state === 'held') {
+        b.x = pet.x; b.y = L.path - 12 + pet.y;
+        if (Math.abs(pet.x - anchor()) < 3 && !pet.hop) {
+          ball = null; pet.jumpT = pet.jumpDur; hearts(pet.x, L.path - 30, 5); sparkle(pet.x, L.path - 12, 6);
+          if (b.cb) b.cb();
+        }
+      }
+    }
+    // bain
+    if (bath) {
+      const B = bath;
+      B.t += dt;
+      if (B.state === 'scrub' && B.prog >= 40) { B.state = 'rinse'; B.t = 0; if (hooks.sfx) hooks.sfx('twinkle'); }
+      if (B.state === 'rinse') {
+        if (RND() < dt * 40) addP({ k: 'px', x: pet.x + RND() * 20 - 10, y: L.path - 48, vx: 0, vy: 70, g: 60, life: 0.55, c: '#8fd3ff' });
+        if (B.foam.length && RND() < dt * 30) { const f = B.foam.splice(Math.floor(RND() * B.foam.length), 1)[0]; if (f) addP({ k: 'px', x: pet.x + f.dx, y: L.path + f.dy, vx: 0, vy: -10, g: 0, life: 0.3, c: '#ffffff' }); }
+        if (B.t > 2.2) { B.state = 'shake'; B.t = 0; B.foam = []; }
+      } else if (B.state === 'shake') {
+        if (RND() < dt * 50) { const dir = RND() < 0.5 ? -1 : 1; addP({ k: 'px', x: pet.x + dir * 8, y: L.path - 10 - RND() * 16, vx: dir * (30 + RND() * 30), vy: -20 - RND() * 20, g: 90, life: 0.6, c: '#8fd3ff' }); }
+        if (B.t > 0.9) {
+          const cb = B.cb; bath = null; sparkle(pet.x, L.path - 16, 14, ['#ffffff', '#8fd3ff', '#fff6b0']); hearts(pet.x, L.path - 30, 4); pet.happyUntil = T + 1.5;
+          if (cb) cb();
+        }
+      }
+    }
+  }
+  function addFoam(p) {
+    const B = bath;
+    if (!B || B.state !== 'scrub') return false;
+    const wx = p.x + Math.round(cam.x);
+    if (Math.abs(wx - pet.x) > 12 || p.y < L.path - 30 || p.y > L.path + 1) return false;
+    const dx = wx - pet.x, dy = p.y - L.path;
+    if (B.last && Math.hypot(B.last.dx - dx, B.last.dy - dy) < 1.6) return true;
+    B.last = { dx, dy };
+    B.foam.push({ dx: Math.round(dx), dy: Math.round(dy), r: RND() < 0.35 ? 2 : 1 });
+    B.prog++;
+    if (B.onProg) B.onProg(Math.min(1, B.prog / 40));
+    if (B.prog % 4 === 0 && hooks.sfx) hooks.sfx('blip');
+    return true;
   }
   function petFrame() {
     const f = { hy: 0, feet: 0, tail: 0, ear: 0, eyes: 'open', eyeDx: 0, mouth: 'w' };
@@ -704,6 +788,9 @@ const Scene = (() => {
     if (celebrating()) f.mouth = 'open';
     if (pet.jumpT > 0) { f.pose = 'jump'; f.eyes = 'happy'; f.mouth = 'open'; f.hy = 0; }
     if (T < pet.happyUntil) { f.eyes = 'happy'; f.mouth = 'open'; }
+    if (care.mood === 'bored' && f.mouth === 'w' && f.eyes !== 'happy') { f.mouth = 'sad'; f.tail = 0; }
+    if (bath) { f.hy = 0; f.feet = 0; f.eyes = bath.state === 'rinse' ? 'closed' : 'happy'; f.mouth = bath.state === 'scrub' ? 'open' : 'w'; if (bath.state === 'shake') f.eyeDx = Math.floor(T * 20) % 2 ? 1 : -1; }
+    if (ball && ball.state === 'held') f.mouth = 'w';
     return f;
   }
   const BUBBLE = U.sprite([
@@ -716,7 +803,11 @@ const Scene = (() => {
     excl: [['..#..', '..#..', '..#..', '.....', '..#..'], '#ff5a3c'],
     coffee: [['.#.#.', '####.', '#..##', '#..#.', '####.'], '#8a5a36'],
     star: [['..#..', '.###.', '#####', '.###.', '.#.#.'], '#ffb800'],
+    food: [['..#..', '.###.', '#####', '#####', '.###.'], '#ff5a5f'],
+    sad: [['#...#', '.....', '.###.', '#...#', '.....'], '#5a6cff'],
+    bubble: [['.##..', '#..#.', '#..#.', '.##.#', '...##'], '#4aa3ff'],
   };
+  const BALL = U.outlined(U.sprite(['.rr.', 'rwrr', 'rrrr', '.rr.'], { r: '#ff5a5f', w: '#ffffff' }), '#2a1d3d');
   const EMOS = {};
   for (const k in EMO) EMOS[k] = U.sprite(EMO[k][0], { '#': EMO[k][1] });
   function drawPetShadow(x, camX) {
@@ -730,16 +821,34 @@ const Scene = (() => {
       if (theme === 'lagon') { disc(x, dx, dy - 2, 2, '#7a4f2c'); P1(x, dx - 1, dy - 3, '#a5774a'); R(x, dx + 1, dy - 8, 1, 4, '#ff5a7a'); P1(x, dx + 2, dy - 8, '#ff5a7a'); }
       else { R(x, dx - 2, dy - 4, 5, 4, '#ffffff'); R(x, dx - 2, dy - 4, 5, 1, '#8a5a36'); P1(x, dx + 3, dy - 3, '#ffffff'); }
     }
-    const spr = Pets.get(petSp, petFur, petFrame());
+    if (meal) {
+      const m = meal, frac = 1 - m.bites / 3, w = Math.max(1, Math.round(m.spr.width * frac)), mx = Math.round(m.x - camX - m.spr.width / 2);
+      if (m.side > 0) x.drawImage(m.spr, m.spr.width - w, 0, w, m.spr.height, mx + m.spr.width - w, Math.round(m.y), w, m.spr.height);
+      else x.drawImage(m.spr, 0, 0, w, m.spr.height, mx, Math.round(m.y), w, m.spr.height);
+    }
+    const spr = Pets.get(petSp, petFur, petFrame(), care.acc, bath ? 0 : care.dirt), P = Pets.PAD;
+    const jit = bath && bath.state === 'shake' ? (Math.floor(T * 25) % 2 ? 1 : -1) : 0;
     if (pet.trick && pet.jumpT > 0) {
       const k = 1 - pet.jumpT / pet.jumpDur;
       x.save();
       x.translate(sx, L.path - 14 + lift);
       if (pet.trick === 'flip') x.rotate(-pet.dir * U.easeInOut(k) * Math.PI * 2);
       else { const c = Math.cos(k * Math.PI * 4); x.scale(Math.abs(c) < 0.15 ? 0.15 * Math.sign(c || 1) : c, 1); }
-      x.drawImage(spr, -14, -15);
+      x.drawImage(spr, -14, -15 - P);
       x.restore();
-    } else x.drawImage(spr, sx - 14, L.path - 29 + lift);
+    } else x.drawImage(spr, sx - 14 + jit, L.path - 29 - P + lift);
+    if (ball) x.drawImage(BALL, Math.round(ball.x - camX) - 3, Math.round(ball.y) - 3);
+    if (bath) {
+      for (const f of bath.foam) {
+        const fx = sx + f.dx, fy = L.path + f.dy;
+        if (f.r > 1) { R(x, fx - 1, fy - 2, 3, 1, '#ffffff'); R(x, fx - 2, fy - 1, 5, 3, '#ffffff'); R(x, fx - 1, fy + 2, 3, 1, '#d6ecff'); P1(x, fx - 1, fy - 1, '#bfe4ff'); }
+        else { R(x, fx - 1, fy - 1, 3, 3, '#ffffff'); P1(x, fx + 1, fy + 1, '#d6ecff'); }
+      }
+      if (bath.state === 'rinse') {
+        const cx = sx, cy = L.path - 50;
+        oval(x, cx, cy, 11, 3, '#e8eef8'); disc(x, cx - 5, cy - 2, 4, '#f4f8ff'); disc(x, cx + 4, cy - 3, 5, '#f4f8ff'); R(x, cx - 11, cy + 2, 23, 1, '#c8d4e8');
+      }
+    }
   }
   function drawEmote(camX) {
     if (!pet.emote || T > pet.emoteUntil || pet.sleeping) return;
@@ -1143,6 +1252,7 @@ const Scene = (() => {
   }
   function tap(p) {
     const camX = Math.round(cam.x), wx = p.x + camX;
+    if (bath && bath.state === 'scrub') { addFoam(p); return; }
     if (Math.abs(wx - pet.x) <= 13 && p.y >= L.path - 32 + pet.y && p.y <= L.path + 3) {
       if (pet.sleeping) { pet.awakeUntil = T + 6; emote('excl', 1.5); }
       else { pet.jumpT = pet.jumpDur; const r = RND(); pet.trick = r < 0.3 ? 'flip' : r < 0.55 ? 'spin' : null; emote(pet.trick ? 'star' : 'heart'); }
@@ -1152,6 +1262,7 @@ const Scene = (() => {
       return;
     }
     if (p.y >= L.ground - 2) {
+      if (meal || ball || bath) return;
       pet.tx = U.clamp(wx, L.startX - 10, L.endX + 12); pet.txUntil = T + 6; pet.awakeUntil = T + 7;
       sparkle(wx, p.y, 5, ['#ffffff', '#fff0cc']);
       if (hooks.sfx) hooks.sfx('step');
@@ -1164,12 +1275,14 @@ const Scene = (() => {
   }
   function bindInput() {
     cv.addEventListener('pointerdown', e => {
+      if (bath && bath.state === 'scrub') { addFoam(toScene(e)); cam.drag = { bath: true }; return; }
       cam.drag = { x0: e.clientX, y0: e.clientY, cam0: cam.x, moved: false };
       try { cv.setPointerCapture(e.pointerId); } catch (err) { /* rien */ }
     });
     cv.addEventListener('pointermove', e => {
       const d = cam.drag;
       if (!d) return;
+      if (d.bath) { addFoam(toScene(e)); return; }
       const dx = e.clientX - d.x0;
       if (!d.moved && Math.abs(dx) > 8) d.moved = true;
       if (d.moved) { cam.x = U.clamp(d.cam0 - (dx * DPR) / SCALE, 0, WW - W); cam.manualUntil = T + 3.5; }
@@ -1177,7 +1290,7 @@ const Scene = (() => {
     const end = e => {
       const d = cam.drag;
       cam.drag = null;
-      if (d && !d.moved && e.type === 'pointerup') tap(toScene(e));
+      if (d && !d.bath && !d.moved && e.type === 'pointerup') tap(toScene(e));
     };
     cv.addEventListener('pointerup', end);
     cv.addEventListener('pointercancel', end);
@@ -1214,6 +1327,30 @@ const Scene = (() => {
     stop() { running = false; },
     on(name, fn) { hooks[name] = fn; },
     celebrate() { for (let i = 0; i < 3; i++) setTimeout(() => rocket(), i * 350); },
+    setCare(c) { Object.assign(care, c); },
+    feed(id, fav, cb) {
+      if (meal || bath) return false;
+      const spr = Care.icon(id), side = pet.x > L.endX - 20 ? -1 : 1;
+      meal = { spr, fav, x: U.clamp(pet.x + side * 16, L.startX - 8, L.endX + 12), y: L.path - 62, vy: 0, landed: false, bites: 0, next: T + 0.4, side, cb, col: Care.foodColor(id) };
+      pet.awakeUntil = T + 30; pet.tx = null; cam.manualUntil = 0; ball = null;
+      return true;
+    },
+    throwBall(cb) {
+      if (ball || meal || bath) return false;
+      const sxp = pet.x - cam.x, dir = sxp > W / 2 ? -1 : 1;
+      ball = { x: pet.x + dir * 4, y: L.path - 24, vx: dir * (45 + RND() * 25), vy: -70 - RND() * 25, state: 'fly', cb };
+      pet.awakeUntil = T + 30; pet.tx = null; cam.manualUntil = 0; emote('excl', 1.2);
+      if (hooks.sfx) hooks.sfx('boing');
+      return true;
+    },
+    startBath(onProg, cb) {
+      if (meal || ball) return false;
+      bath = { state: 'scrub', foam: [], prog: 0, t: 0, last: null, onProg, cb };
+      pet.awakeUntil = T + 120; pet.tx = null; cam.manualUntil = 0; pet.jumpT = 0; pet.trick = null;
+      return true;
+    },
+    stopBath() { bath = null; },
+    get busy() { return !!(meal || ball || bath); },
     cheer() {
       if (pet.sleeping) return;
       pet.jumpT = pet.jumpDur; pet.trick = 'flip'; pet.happyUntil = T + 1.5; emote('star', 2.5);

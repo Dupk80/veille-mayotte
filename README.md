@@ -10,6 +10,12 @@ Application Android en **pixel-art** qui affiche le temps qu'il reste avant de q
 <img src="docs/captures/morning.png" width="200" alt="Lever du soleil">
 <img src="docs/captures/settings.png" width="200" alt="Réglages">
 </p>
+<p>
+<img src="docs/captures/care.png" width="200" alt="S'occuper du compagnon">
+<img src="docs/captures/shop.png" width="200" alt="Boutique d'accessoires">
+<img src="docs/captures/games.png" width="200" alt="Mini-jeux">
+<img src="docs/captures/catch.png" width="200" alt="Pluie de friandises">
+</p>
 
 ## 📲 Installer
 
@@ -41,6 +47,20 @@ Application Android en **pixel-art** qui affiche le temps qu'il reste avant de q
 - Il te parle dans une **boîte de dialogue façon jeu rétro**, avec le texte qui s'écrit lettre par lettre.
 - Petite fête à **chaque heure terminée**.
 
+**S'occuper de lui (version 2.1)**
+- Trois besoins qui baissent doucement avec le temps, même appli fermée (moins vite la nuit) : **ventre**, **joie**, **propreté**. Il ne tombe jamais malade, il devient juste grognon : il réclame à manger, fait la tête, a des taches de boue…
+- **Nourrir** : croquettes et pomme gratuites, son **plat préféré** (poisson, os, carotte, baies, bambou ou graines selon l'animal), glace et gâteau. La nourriture tombe devant lui et il la mange bouchée par bouchée.
+- **Laver** : frotte-le avec le doigt pour faire de la mousse, un petit nuage le rince, puis il s'ébroue.
+- **Balle** : il court la chercher et te la rapporte.
+- **Amitié** : chaque soin et chaque partie le rend plus proche de toi (niveaux d'amitié).
+- **Boutique** : nœud, fleur, lunettes de soleil, casquette, chapeau de fête et couronne, à acheter avec des étoiles. Il les porte partout : dans le décor, les jeux et ses notifications.
+
+**Mini-jeux passe-temps (pour gagner des étoiles)**
+- **Pluie de friandises** : glisse le doigt pour attraper les friandises et évite les cailloux et les chaussettes (combos ×2 et ×3).
+- **Grand saut** : saute par-dessus les crabes, châteaux de sable, champignons et bûches (double saut) et ramasse les étoiles.
+- **Memory** : retrouve les paires de friandises en un minimum de coups.
+- Records, étoiles gagnées selon le score, et ton compagnon devient plus joyeux.
+
 **Le compte à rebours**
 - Gros chiffres pixel qui **roulent** à chaque seconde, avec une couleur différente selon le moment (travail, pause, presque fini, terminé, repos).
 - Barre du trajet avec les pauses, heure de fin, prochaine pause, **travail effectif restant** (sans les pauses) et progression.
@@ -52,7 +72,7 @@ Application Android en **pixel-art** qui affiche le temps qu'il reste avant de q
 
 ## 🔔 Notifications
 
-- **Compagnon** : c'est ton animal qui t'écrit, avec son portrait en pixel-art.
+- **Compagnon** : c'est ton animal qui t'écrit, avec son portrait en pixel-art (et ses accessoires). Il te dit aussi s'il a faim ou s'il s'ennuie, et t'invite à jouer pendant tes pauses.
 - **Classique** : des notifications sobres.
 - **Aucune**.
 
@@ -71,6 +91,8 @@ Structure de `app/src/main/assets/` :
 - `js/pets.js` : les compagnons, construits à partir de formes avec ombrage et contours automatiques.
 - `js/scene.js` : le décor (ciel, parallaxe, lumières, critters, feux d'artifice) et le comportement du compagnon.
 - `js/hud.js` : chiffres pixel qui roulent, boîte de dialogue, icônes.
+- `js/care.js` : besoins du compagnon, nourriture, amitié, étoiles et boutique.
+- `js/games.js` : les trois mini-jeux.
 - `js/app.js` : réglages, calcul du temps, sons 8-bit, lien avec Android.
 - `fonts/PixelifySans.ttf` : police pixel sous licence libre SIL OFL (voir `fonts/OFL.txt`).
 

@@ -41,6 +41,7 @@ function save() {
 }
 const LD = load();
 let S = LD.s;
+Care.init(S);
 if (LD.fresh) save();
 
 /* ================= Calcul du temps ================= */
@@ -144,6 +145,9 @@ const SFX = (() => {
     twinkle() { [1046, 1318, 1568, 2093].forEach((f, i) => tone(f, 0.1, 'triangle', 0.16, 0, i * 0.05)); },
     pop() { tone(110 + Math.random() * 40, 0.22, 'square', 0.18, -60); tone(1800, 0.05, 'triangle', 0.06, -900, 0.02); },
     click() { tone(480, 0.03, 'square', 0.15); },
+    hurt() { tone(160, 0.18, 'sawtooth', 0.22, -90); },
+    jump() { tone(420, 0.1, 'square', 0.16, 380); },
+    over() { [[523, 0], [440, 0.12], [349, 0.24]].forEach(([f, t]) => tone(f, 0.16, 'triangle', 0.25, 0, t)); },
     fanfare() { [[523, 0], [659, 0.12], [784, 0.24], [1046, 0.36], [784, 0.52], [1046, 0.64]].forEach(([f, t]) => tone(f, t >= 0.6 ? 0.45 : 0.14, 'square', 0.22, 0, t)); },
   };
 })();
@@ -185,9 +189,16 @@ function petLines(st) {
       'Pas de boulot, que des câlins !', ...fl];
   }
 }
+const NEED_LINES = {
+  hungry: ['Mon ventre gargouille… On mange ?', 'J\'ai un petit creux ! Tu as des croquettes ?', 'Je rêve d\'un bon repas…'],
+  dirty: ['Je suis tout crotté… Un petit bain ?', 'Un bain avec plein de mousse, ça te dit ?', 'Hum… je ne sens pas très bon.'],
+  bored: ['Je m\'ennuie… On fait un mini-jeu ?', 'Tu me lances la balle ?', 'On joue ensemble ?'],
+};
 let curMood = '', lastSay = 0;
 function say(force, withSound) {
-  const pool = petLines(curMood);
+  const need = Care.mood();
+  let pool = petLines(curMood);
+  if (need !== 'ok' && !force && Math.random() < 0.55) pool = NEED_LINES[need];
   const txt = pool[Math.floor(Math.random() * pool.length)];
   dialog.say(txt, withSound && S.sound ? () => SFX.blip() : null);
   lastSay = Date.now();
@@ -226,14 +237,15 @@ function applyLook() {
   Scene.setTheme(S.theme);
   Scene.setPet(S.pet, S.fur);
   Scene.setHour(S.ambiance === 'day' ? 12.5 : S.ambiance === 'night' ? 22.5 : null);
-  dialog.setPet(S.pet, S.fur);
+  dialog.setPet(S.pet, S.fur, Care.state.wear);
+  Scene.setCare({ acc: Care.state.wear, dirt: Care.dirt(), mood: Care.mood() });
   $('#dlgName').textContent = S.petName || Pets.INFO[S.pet].name;
 }
 let iconT = null;
 function exportPetIcon() {
   if (!bridge || !bridge.setPetIcon) return;
   clearTimeout(iconT);
-  iconT = setTimeout(() => { try { bridge.setPetIcon(Pets.portraitPNG(S.pet, S.fur, 1).split(',')[1]); } catch (e) { /* rien */ } }, 400);
+  iconT = setTimeout(() => { try { bridge.setPetIcon(Pets.portraitPNG(S.pet, S.fur, 1, Care.state.wear).split(',')[1]); } catch (e) { /* rien */ } }, 400);
 }
 
 function setChip(ico, text) {
@@ -330,6 +342,9 @@ function tick() {
     $('#tStart').textContent = hhmm(sh.st); $('#tEnd').textContent = hhmm(sh.en);
   } else { $('#tStart').textContent = '--:--'; $('#tEnd').textContent = '--:--'; }
   lastInfo = info;
+  Care.update(now);
+  renderCare();
+  if (now - lastCareSave > 60000) { lastCareSave = now; save(); }
   if (mood !== curMood) { curMood = mood; say(); }
   else if (Date.now() - lastSay > 22000) say();
   lastKind = cs.kind;
@@ -354,6 +369,9 @@ function confetti() {
 }
 Scene.on('tapPet', () => {
   SFX.boing();
+  const r = Care.caress();
+  renderCare();
+  if (r.levelUp) { levelUp(); return; }
   if (S.vibrate && bridge) { try { bridge.vibrate(25); } catch (e) { /* rien */ } }
   say(true, true);
 });
@@ -367,7 +385,12 @@ function openSheet() { buildSettings(); $('#sheet').classList.add('open'); sheet
 function closeSheet() { $('#sheet').classList.remove('open'); sheetOpen = false; applyLook(); if (pendingLayout) { pendingLayout = false; layoutScene(); } tick(); Scene.start(); SFX.click(); syncBars(); }
 $('#btnSettings').onclick = openSheet;
 $('#btnDone').onclick = closeSheet;
-window.onBack = () => { if (sheetOpen) { closeSheet(); return true; } return false; };
+window.onBack = () => {
+  if ($('#modal').classList.contains('open')) { closeModal(); return true; }
+  if (gamesOpen) { if (Games.state !== 'idle' && $('#gPlay').style.display !== 'none') { showGameMenu(); } else closeGames(); return true; }
+  if (sheetOpen) { closeSheet(); return true; }
+  return false;
+};
 window.onResumeApp = () => { tick(); refreshStatus(); };
 
 const petCanvases = [];
@@ -494,6 +517,198 @@ function refreshStatus() {
   const x = $('#lnE'); if (x) x.onclick = e => { e.preventDefault(); bridge.openExactAlarmSettings(); };
 }
 
+/* ================= Coin du compagnon ================= */
+let lastCareSave = Date.now();
+function setBar(id, v) {
+  const el = $(id);
+  el.firstElementChild.style.width = Math.round(U.clamp(v, 0, 100)) + '%';
+  el.classList.toggle('low', v < 25);
+}
+function renderCare(cleanOverride) {
+  const C = Care.state;
+  setBar('#sFood', C.food); setBar('#sJoy', C.joy); setBar('#sClean', cleanOverride !== undefined ? cleanOverride : C.clean);
+  $('#sXp').firstElementChild.style.width = Math.round(Care.levelProgress() * 100) + '%';
+  $('#lvlTxt').textContent = 'Amitié niv. ' + Care.level();
+  $('#starsN').textContent = C.stars;
+  Scene.setCare({ acc: C.wear, dirt: Care.dirt(), mood: Care.mood() });
+}
+function levelUp() {
+  confetti(); SFX.fanfare(); Scene.cheer();
+  const n = Care.level(), unlock = Care.ACCS.filter(a => a.level === n).map(a => a.name);
+  dialog.say(`Niveau d'amitié ${n} ! Je t'adore !` + (unlock.length ? ` (${unlock.join(', ')} débloqué !)` : ''), S.sound ? () => SFX.blip() : null);
+  lastSay = Date.now();
+}
+function talk(txt) { dialog.say(txt, S.sound ? () => SFX.blip() : null); lastSay = Date.now(); }
+function toScene() { if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+const actButtons = {};
+document.querySelectorAll('.act').forEach(b => { actButtons[b.dataset.act] = b; b.onclick = () => { SFX.unlock(); doAct(b.dataset.act); }; });
+let bathing = false;
+function doAct(a) {
+  const P = Pets.INFO[S.pet];
+  if ((a === 'feed' || a === 'ball' || a === 'bath') && Scene.busy && !(a === 'bath' && bathing)) { talk('Attends, je suis occupé !'); return; }
+  if (a === 'feed') { if (bathing) return; openModal('food'); }
+  else if (a === 'shop') openModal('shop');
+  else if (a === 'games') { if (bathing) stopBath(); openGames(); }
+  else if (a === 'ball') {
+    if (bathing || Scene.busy) return;
+    toScene();
+    if (Scene.throwBall(() => { const r = Care.fetchDone(); renderCare(); save(); if (r.levelUp) levelUp(); else talk(['Je l\'ai ! Encore, encore !', `${P.cry} ! Relance-la !`, 'Trop facile !'][Math.floor(Math.random() * 3)]); })) talk('Je vais la chercher !');
+  } else if (a === 'bath') {
+    if (bathing) { stopBath(); talk('Bon… on finira plus tard.'); return; }
+    if (Scene.busy) return;
+    if (Care.state.clean >= 92) { talk('Je suis déjà tout propre !'); return; }
+    toScene();
+    const c0 = Care.state.clean;
+    const ok = Scene.startBath(p => renderCare(c0 + (100 - c0) * p), () => {
+      bathing = false; actButtons.bath.classList.remove('on');
+      const r = Care.bathDone(); renderCare(); save();
+      if (r.levelUp) levelUp(); else talk('Tout propre ! Je sens bon la noix de coco.');
+    });
+    if (ok) { bathing = true; actButtons.bath.classList.add('on'); talk('Frotte-moi avec ton doigt pour faire plein de mousse !'); }
+  }
+}
+function stopBath() { Scene.stopBath(); bathing = false; actButtons.bath.classList.remove('on'); renderCare(); }
+
+/* ---------- Menus nourriture et boutique ---------- */
+let modalKind = '';
+function openModal(kind) { modalKind = kind; buildModal(''); $('#modal').classList.add('open'); SFX.click(); }
+function closeModal() { $('#modal').classList.remove('open'); }
+$('#mClose').onclick = closeModal;
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+function iconCanvas(src, scale) {
+  const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  c.getContext('2d').drawImage(src, 0, 0);
+  c.style.width = src.width * px * scale + 'px'; c.style.height = src.height * px * scale + 'px';
+  return c;
+}
+function buildModal(note) {
+  const C = Care.state, grid = $('#mGrid'), P = Pets.INFO[S.pet], nm = S.petName || P.name;
+  grid.innerHTML = '';
+  $('#mStars').textContent = C.stars;
+  $('#mNote').textContent = note || '';
+  if (modalKind === 'food') {
+    $('#mTitle').textContent = 'Nourrir ' + nm;
+    for (const id of Care.menu(S.pet)) {
+      const f = Care.FOODS[id], fav = Care.FAV[S.pet] === id, b = document.createElement('button');
+      b.className = 'mitem pxbox' + (fav ? ' fav' : '');
+      b.appendChild(iconCanvas(Care.icon(id), 2));
+      b.insertAdjacentHTML('beforeend', `<span class="nm">${f.name}</span>${fav ? '<span class="tag">Son préféré !</span>' : ''}<span class="fx">Ventre +${f.food} · Joie +${f.joy + (fav ? 8 : 0)}</span><span class="pr">${f.price ? f.price + ' étoile' + (f.price > 1 ? 's' : '') : 'Gratuit'}</span>`);
+      b.onclick = () => feedItem(id);
+      grid.appendChild(b);
+    }
+  } else {
+    $('#mTitle').textContent = 'Boutique';
+    const lvl = Care.level();
+    for (const a of Care.ACCS) {
+      const owned = C.owned.includes(a.id), worn = C.wear === a.id, locked = !owned && a.level && lvl < a.level;
+      const b = document.createElement('button');
+      b.className = 'mitem pxbox' + (worn ? ' worn' : '') + (locked ? ' locked' : '');
+      b.appendChild(iconCanvas(Pets.get(S.pet, S.fur, { eyes: worn ? 'happy' : 'open', mouth: worn ? 'open' : 'w' }, a.id), 1.6));
+      const st = worn ? 'Porté (retirer)' : owned ? 'Porter' : locked ? 'Amitié niv. ' + a.level : a.price + ' étoiles';
+      b.insertAdjacentHTML('beforeend', `<span class="nm">${a.name}</span><span class="pr">${st}</span>`);
+      b.onclick = () => buyAcc(a.id);
+      grid.appendChild(b);
+    }
+  }
+  HUD.paintIcons($('#modal'));
+}
+function feedItem(id) {
+  if (Scene.busy) { closeModal(); return; }
+  const r = Care.feed(id, S.pet);
+  if (!r.ok) {
+    if (r.reason === 'full') { closeModal(); talk('Je n\'ai plus faim, merci ! On joue plutôt ?'); }
+    else if (r.reason === 'stars') { SFX.hurt(); buildModal(`Il te manque ${r.missing} étoile${r.missing > 1 ? 's' : ''}. Gagne-en avec les mini-jeux !`); }
+    return;
+  }
+  closeModal(); toScene(); renderCare(); save();
+  const art = Care.FOODS[id].art;
+  talk(r.fav ? `Oh !! ${art.charAt(0).toUpperCase() + art.slice(1)} ?!` : `Oh, ${art} !`);
+  Scene.feed(id, r.fav, () => {
+    if (r.levelUp) levelUp();
+    else talk(r.fav ? `${Pets.INFO[S.pet].cry} ! C'est mon plat préféré !` : 'Miam ! Merci, c\'était délicieux !');
+  });
+}
+function buyAcc(id) {
+  const r = Care.buy(id);
+  if (!r.ok) {
+    SFX.hurt();
+    buildModal(r.reason === 'level' ? `Débloqué au niveau d'amitié ${r.level}. Prends soin de ton compagnon !` : `Il te manque ${r.missing} étoile${r.missing > 1 ? 's' : ''}. Joue aux mini-jeux !`);
+    return;
+  }
+  SFX.twinkle(); applyLook(); renderCare(); exportPetIcon(); save();
+  buildModal(r.bought ? 'Acheté ! Ton compagnon le porte déjà.' : r.worn ? 'C\'est mis !' : 'Retiré.');
+  if (r.bought) { confetti(); talk('Waouh ! Merci pour ce cadeau, je l\'adore !'); }
+}
+
+/* ---------- Mini-jeux ---------- */
+let gamesOpen = false, curGame = '';
+Games.init($('#gCanvas'));
+function openGames() {
+  showGameMenu();
+  $('#gamesSheet').classList.add('open'); gamesOpen = true; Scene.stop(); SFX.click();
+}
+function closeGames() { Games.stop(); $('#gamesSheet').classList.remove('open'); gamesOpen = false; Scene.start(); renderCare(); applyLook(); }
+$('#gClose').onclick = closeGames;
+function showGameMenu() {
+  Games.stop();
+  $('#gTitle').textContent = 'Mini-jeux';
+  $('#gMenu').style.display = ''; $('#gPlay').style.display = 'none'; $('#gEnd').style.display = 'none';
+  const box = $('#gCards'), C = Care.state;
+  box.innerHTML = '';
+  for (const id in Games.LIST) {
+    const gm = Games.LIST[id], b = document.createElement('button');
+    b.className = 'gcard pxbox';
+    const cv = document.createElement('canvas'); cv.width = 42; cv.height = 40;
+    const x = cv.getContext('2d'); x.imageSmoothingEnabled = false;
+    x.drawImage(Pets.get(S.pet, S.fur, { eyes: 'happy', mouth: 'open', pose: id === 'jump' ? 'jump' : '' }, C.wear), 0, 3);
+    const ic = Care.icon(gm.icon); x.drawImage(ic, 42 - ic.width, 0);
+    cv.style.width = 42 * px * 1.3 + 'px'; cv.style.height = 40 * px * 1.3 + 'px';
+    b.appendChild(cv);
+    b.insertAdjacentHTML('beforeend', `<div><div class="gn">${gm.name}</div><div class="gd">${gm.desc}</div><div class="gb">Record : ${C.best[id] || 0}</div></div>`);
+    b.onclick = () => startGame(id);
+    box.appendChild(b);
+  }
+}
+function startGame(id) {
+  curGame = id;
+  $('#gTitle').textContent = Games.LIST[id].name;
+  $('#gMenu').style.display = 'none'; $('#gEnd').style.display = 'none'; $('#gPlay').style.display = '';
+  const top = $('#gamesSheet .top').getBoundingClientRect().height;
+  const w = document.documentElement.clientWidth, h = Math.max(240, window.innerHeight - top - 44 - 12 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0));
+  Games.open(id, { sp: S.pet, fur: S.fur, acc: Care.state.wear, theme: S.theme, night: Scene.night > 0.6 }, w, h);
+  const m = $('#gMsg');
+  m.innerHTML = `<b>${Games.LIST[id].name}</b>${Games.LIST[id].desc}<br><br>Touche l'écran pour commencer !`;
+  m.classList.remove('hide');
+  $('#gScore').textContent = '0'; $('#gInfo').textContent = ''; renderLives(id === 'memory' ? -1 : 3);
+  SFX.click();
+}
+function renderLives(n) {
+  const el = $('#gLives');
+  if (el.dataset.n === String(n)) return;
+  el.dataset.n = String(n);
+  el.innerHTML = n < 0 ? '' : [0, 1, 2].map(i => `<i class="ico" data-ico="${i < n ? 'heart' : 'heartoff'}"></i>`).join('');
+  HUD.paintIcons(el);
+}
+Games.on('start', () => { $('#gMsg').classList.add('hide'); });
+Games.on('hud', (score, lives, info) => { $('#gScore').textContent = score; $('#gInfo').textContent = info; renderLives(lives); });
+Games.on('sfx', n => { if (SFX[n]) SFX[n](); });
+Games.on('end', (id, score) => {
+  const r = Care.reward(id, score);
+  renderCare(); save();
+  setTimeout(() => {
+    $('#gPlay').style.display = 'none'; $('#gEnd').style.display = '';
+    $('#gResTitle').textContent = r.isBest ? 'Nouveau record !' : score > 0 ? 'Bravo !' : 'Presque !';
+    $('#gResScore').textContent = score;
+    $('#gResBest').textContent = 'Record : ' + r.best;
+    $('#gResReward').innerHTML = `+${r.stars} étoile${r.stars > 1 ? 's' : ''} · Joie +15` + (r.levelUp ? `<br>Amitié niveau ${Care.level()} !` : '');
+    const c = $('#gResPet'), x = c.getContext('2d');
+    x.clearRect(0, 0, c.width, c.height); x.drawImage(Pets.get(S.pet, S.fur, { eyes: 'happy', mouth: 'open', pose: 'jump' }, Care.state.wear), 0, 0);
+    if (r.isBest || r.levelUp) { confetti(); SFX.fanfare(); } else SFX.over();
+  }, 700);
+});
+$('#gAgain').onclick = () => startGame(curGame);
+$('#gBack').onclick = showGameMenu;
+
 /* ================= Boucle d'animation de l'interface ================= */
 function hudLoop(now) {
   clock.draw(now);
@@ -503,7 +718,7 @@ function hudLoop(now) {
       const x = p.c.getContext('2d'), sel = p.k === S.pet;
       const f = { hy: Math.floor(now / 600) % 2, tail: [0, 1, 0, -1][Math.floor(now / 250) % 4], eyes: Math.floor(now / 90) % 37 === 0 ? 'blink' : sel ? 'happy' : 'open', mouth: sel ? 'open' : 'w' };
       x.clearRect(0, 0, p.c.width, p.c.height);
-      x.drawImage(Pets.get(p.k, sel ? S.fur : 0, f), 0, 0);
+      x.drawImage(Pets.get(p.k, sel ? S.fur : 0, f, sel ? Care.state.wear : ''), 0, 0);
     }
   }
   requestAnimationFrame(hudLoop);

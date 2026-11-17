@@ -114,12 +114,20 @@ const HUD = (() => {
     bell: ['.....kk.....', '....kyyk....', '...kyyyyk...', '...kyyyyk...', '..kyyyyyyk..', '..kyyyyyyk..', '.kyyyyyyyyk.', 'kkkkkkkkkkkk', '.....kk.....'],
     star: ['.....k.....', '.....k.....', '....kyk....', '....kyk....', '..kkyyykk..', 'kkyyyyyyykk', '..kkyyykk..', '....kyk....', '....kyk....', '.....k.....', '.....k.....'],
     heart: ['.kkk...kkk.', 'krrrk.krrrk', 'krwrrkrrrrk', 'krrrrrrrrrk', 'krrrrrrrrrk', '.krrrrrrrk.', '..krrrrrk..', '...krrrk...', '....krk....', '.....k.....'],
+    heartoff: ['.kkk...kkk.', 'kdddk.kdddk', 'kddddkddddk', 'kdddddddddk', 'kdddddddddk', '.kdddddddk.', '..kdddddk..', '...kdddk...', '....kdk....', '.....k.....'],
     moon: ['...kkkk...', '..kyyyk...', '.kyyyk....', 'kyyyk.....', 'kyyyk.....', 'kyyyk.....', 'kyyyyk....', '.kyyyykkk.', '..kyyyyyk.', '...kkkkk..'],
     palm: ['.gg...gg..', 'gggg.gggg.', 'g..ggg..g.', '....n.....', '....n.....', '...nn.....', '...n......', '...n......', '..nn......', 'yyyyyyyyyy'],
     tree: ['...gggg...', '..gggggg..', '.gggggggg.', '.gggggggg.', '..gggggg..', '....nn....', '....nn....', '....nn....', 'gggggggggg'],
     sound: ['....k.....', '...kk..k..', 'kkkwk...k.', 'kwwwk.k.k.', 'kwwwk.k.k.', 'kkkwk...k.', '...kk..k..', '....k.....'],
     zz: ['kkkk......', '...k......', '..k.......', '.k.kkkk...', 'kkkk..k...', '.....k....', '....kkkk..'],
     down: ['kkkkk', '.kkk.', '..k..'],
+    drum: ['......kkkk..', '.....konnok.', '....konnnnok', '....knnnnnnk', '...knnnnnnk.', '..kkknnnnk..', '.kwk.kkkk...', 'kwwk........', '.kk.........'],
+    smile: ['...kkkkk...', '..kyyyyyk..', '.kyykyykyk.', '.kyyyyyyyk.', '.kykyyykyk.', '.kyykkkyyk.', '..kyyyyyk..', '...kkkkk...'],
+    drop: ['....k.....', '...kbk....', '...kbk....', '..kbbbk...', '.kbwbbbk..', '.kbwbbbk..', '.kbbbbbk..', '..kbbbk...', '...kkk....'],
+    bubble: ['..kkk......', '.kwccck....', '.kccccck...', '.kccccck.kk', '..kcccckwck', '...kkkk.kck', '.kk......k.', 'kwck.......', '.kk........'],
+    ball: ['...kkkk...', '..krrwwk..', '.krrrwwwk.', '.krrrrwwk.', '.kwwrrrrk.', '.kwwwrrrk.', '..kwwrrk..', '...kkkk...'],
+    pad: ['.kkkkkkkkkk.', 'kGGGGGGGGGGk', 'kGwGGGGGGrGk', 'kwwwGGGGrGrk', 'kGwGGGGGGrGk', 'kGGGGkkGGGGk', '.kkkk..kkkk.'],
+    shop: ['...kkkk...', '..k....k..', '.kkkkkkkk.', '.kppppppk.', '.kpwppppk.', '.kppppppk.', '.kppppppk.', '.kkkkkkkk.'],
   };
   const iconURL = {};
   function icon(name) {
@@ -141,10 +149,10 @@ const HUD = (() => {
   /* ---------------- Boîte de dialogue (texte tapé) ---------------- */
   function Dialog(textEl, portrait) {
     const px = portrait.getContext('2d');
-    let full = '', shown = 0, last = 0, blip = null, sp = 'cat', fur = 0, nextBlink = 0, blinkUntil = 0;
+    let full = '', shown = 0, last = 0, blip = null, sp = 'cat', fur = 0, acc = '', nextBlink = 0, blinkUntil = 0;
     return {
       say(txt, onBlip) { full = txt.replace(/ ([!?:;»])/g, '\u00a0$1').replace(/« /g, '«\u00a0'); shown = 0; last = performance.now(); blip = onBlip || null; textEl.textContent = ''; },
-      setPet(s, f) { sp = s; fur = f; },
+      setPet(s, f, a) { sp = s; fur = f; acc = a || ''; },
       get typing() { return shown < full.length; },
       draw(now) {
         if (shown < full.length && now - last > 26) {
@@ -157,7 +165,7 @@ const HUD = (() => {
         const talking = shown < full.length;
         const f = { hy: Math.floor(now / 700) % 2, tail: [0, 1, 0, -1][Math.floor(now / 260) % 4], eyes: now < blinkUntil ? 'blink' : 'open', mouth: talking && Math.floor(now / 110) % 2 ? 'open' : 'w' };
         px.clearRect(0, 0, portrait.width, portrait.height);
-        px.drawImage(Pets.get(sp, fur, f), 0, 0);
+        px.drawImage(Pets.get(sp, fur, f, acc), 0, 0);
       },
     };
   }
