@@ -4,760 +4,120 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Bientôt la Maison</title>
-<style>
-:root{
-  --sky1:#3d8bf2;--sky2:#8fd0ff;--glass:rgba(255,255,255,.2);--glass-b:rgba(255,255,255,.35);
-  --ink:#fff;--accent:#ffb347;--accent2:#ff7a59;--break:#ffd36e;--ok:#7ef0b5;
-  --surface:#ffffff;--surface2:#f3f4fa;--sink:#24243e;--smuted:#6b6b85;--sline:#e3e4ee;
-}
-:root[data-sheet="dark"]{--surface:#1c1e3a;--surface2:#262950;--sink:#f1f1fb;--smuted:#a3a5c9;--sline:#34376a}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow-x:hidden}
-body{font-family:"Nunito","Quicksand",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);
-  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 100%);background-attachment:fixed;transition:background 2s}
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-
-/* ---------- Ciel ---------- */
-#sky{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
-.stars{position:absolute;inset:0;opacity:0;transition:opacity 2s;
-  background-image:radial-gradient(1.5px 1.5px at 20% 15%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 70% 8%,#fff 50%,transparent 51%),
-  radial-gradient(1.2px 1.2px at 85% 30%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 40% 25%,#fff 50%,transparent 51%),
-  radial-gradient(1.6px 1.6px at 10% 45%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 55% 40%,#fff 50%,transparent 51%),
-  radial-gradient(1.3px 1.3px at 92% 55%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 30% 60%,#fff 50%,transparent 51%);
-  animation:twinkle 4s ease-in-out infinite alternate}
-@keyframes twinkle{to{filter:brightness(.6)}}
-.sky-night .stars{opacity:.9}.sky-dusk .stars{opacity:.3}
-#sun{position:absolute;width:70px;height:70px;border-radius:50%;
-  background:radial-gradient(circle at 40% 40%,#fff7c2,#ffd54a 60%,#ffb300);box-shadow:0 0 60px 20px rgba(255,214,90,.55);
-  transition:left 2s,top 2s,background 2s,box-shadow 2s}
-.sky-night #sun{background:radial-gradient(circle at 35% 35%,#ffffff,#e6e9ff 60%,#c4c9ee);box-shadow:0 0 40px 10px rgba(220,225,255,.35)}
-.sky-night #sun::after{content:"";position:absolute;width:62px;height:62px;border-radius:50%;left:-16px;top:-10px;background:var(--sky1)}
-.cloud{position:absolute;background:#fff;border-radius:50px;opacity:.75;filter:blur(.3px)}
-.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
-.cloud.c1{width:120px;height:36px;top:16%;left:-140px;animation:drift 70s linear infinite}
-.cloud.c1::before{width:56px;height:56px;left:16px;top:-28px}.cloud.c1::after{width:40px;height:40px;left:62px;top:-18px}
-.cloud.c2{width:90px;height:28px;top:42%;left:-120px;animation:drift 95s linear infinite -40s;opacity:.55}
-.cloud.c2::before{width:42px;height:42px;left:12px;top:-20px}.cloud.c2::after{width:30px;height:30px;left:46px;top:-14px}
-.cloud.c3{width:150px;height:40px;top:72%;left:-170px;animation:drift 120s linear infinite -80s;opacity:.45}
-.cloud.c3::before{width:64px;height:64px;left:22px;top:-32px}.cloud.c3::after{width:48px;height:48px;left:80px;top:-22px}
-.sky-night .cloud{opacity:.12}.sky-dusk .cloud{background:#ffd9c7}.sky-dusk .cloud::before,.sky-dusk .cloud::after{background:#ffd9c7}
-@keyframes drift{to{transform:translateX(calc(100vw + 340px))}}
-
-/* ---------- Accueil ---------- */
-main{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:18px 16px 40px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.hello{font-size:22px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.15)}
-.date{font-size:14px;opacity:.85;text-transform:capitalize}
-.iconbtn{width:46px;height:46px;border-radius:16px;background:var(--glass);border:1px solid var(--glass-b);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:22px;display:grid;place-items:center;transition:transform .2s}
-.iconbtn:active{transform:scale(.9) rotate(30deg)}
-
-.hero{display:flex;flex-direction:column;align-items:center;margin-top:6px}
-.ringwrap{position:relative;width:min(80vw,310px);aspect-ratio:1;margin-top:46px}
-.ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
-.ring .track{fill:none;stroke:rgba(255,255,255,.22);stroke-width:14}
-.ring .brk{fill:none;stroke:var(--break);stroke-width:14;opacity:.55}
-.ring .prog{fill:none;stroke:url(#gradProg);stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset 1s linear;
-  filter:drop-shadow(0 0 6px rgba(255,200,120,.7))}
-.ring .dot{fill:#fff;filter:drop-shadow(0 0 6px #fff)}
-.petbox{position:absolute;inset:13%;display:grid;place-items:center;cursor:pointer}
-.petbox svg{width:100%;height:100%;overflow:visible}
-.bubble{position:absolute;left:50%;top:-44px;transform:translateX(-50%);max-width:92%;width:max-content;
-  background:#fff;color:#2c2c48;font-weight:700;font-size:14px;padding:9px 14px;border-radius:18px;
-  box-shadow:0 8px 24px rgba(0,0,0,.15);text-align:center;z-index:3;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
-.bubble::after{content:"";position:absolute;left:50%;bottom:-7px;width:14px;height:14px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:3px}
-@keyframes pop{from{transform:translateX(-50%) scale(.4);opacity:0}}
-.hearts{position:absolute;inset:0;pointer-events:none;z-index:4}
-.heart{position:absolute;font-size:22px;animation:floatUp 1.4s ease-out forwards}
-@keyframes floatUp{to{transform:translate(var(--dx),-120px) scale(1.4) rotate(var(--r));opacity:0}}
-
-.chip{margin-top:12px;padding:7px 14px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-b);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-weight:700;font-size:14px;text-align:center}
-.big{margin-top:6px;font-size:58px;font-weight:900;letter-spacing:-1px;font-variant-numeric:tabular-nums;line-height:1.05;
-  text-shadow:0 4px 18px rgba(0,0,0,.18);display:flex;align-items:baseline;gap:2px}
-.big i{font-style:normal;font-size:26px;font-weight:800;opacity:.85;margin-right:6px}
-.big small{font-size:22px;font-weight:800;opacity:.7;margin-left:4px;min-width:38px}
-.big.text{font-size:40px}
-.sub{font-size:15px;opacity:.9;font-weight:600;text-align:center}
-
-.card{position:relative;margin-top:18px;padding:16px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-b);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.08)}
-.journey .row{display:flex;align-items:center;gap:10px}
-.journey .ico{font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
-.bar{position:relative;flex:1;height:14px;border-radius:10px;background:rgba(255,255,255,.25)}
-.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1s linear}
-.bar .seg{position:absolute;top:0;bottom:0;background:var(--break);opacity:.75;border-radius:4px}
-.bar .walker{position:absolute;top:-30px;font-size:26px;transform:translateX(-50%);transition:left 1s linear}
-.bar .walker span{display:inline-block;animation:walk .6s ease-in-out infinite alternate}
-@keyframes walk{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-4px) rotate(6deg)}}
-.journey .times{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-top:8px;padding:0 36px;font-weight:700}
-.journey .title{font-weight:800;font-size:14px;margin-bottom:28px;opacity:.95}
-
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.tile{padding:14px;border-radius:20px;background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.tile .k{font-size:12px;opacity:.85;font-weight:700}
-.tile .v{font-size:22px;font-weight:900;margin-top:4px;font-variant-numeric:tabular-nums}
-.tile .s{font-size:12px;opacity:.8;margin-top:2px}
-.foot{text-align:center;font-size:12px;opacity:.7;margin-top:22px}
-
-/* ---------- Animal ---------- */
-.pet *{transform-box:view-box}
-.pet .body{transform-origin:110px 205px;animation:breathe 3.2s ease-in-out infinite}
-@keyframes breathe{50%{transform:scale(1.03,.98)}}
-.pet .head{transform-origin:110px 140px;animation:bob 3.2s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(2.5px) rotate(-1.5deg)}}
-.pet .tail{animation:wag 1.6s ease-in-out infinite}
-@keyframes wag{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(10deg)}}
-.pet .ears{transform-origin:110px 70px;animation:twitch 7s ease-in-out infinite}
-@keyframes twitch{0%,90%,100%{transform:none}93%{transform:rotate(-4deg)}96%{transform:rotate(3deg)}}
-.pet .eye-open{transform-origin:110px 92px;animation:blink 4.6s infinite}
-@keyframes blink{0%,45%,49%,100%{transform:scaleY(1)}47%{transform:scaleY(.08)}}
-.pet .eye-closed,.pet .eye-happy,.pet .mouth-o,.pet .acc,.pet .zzz{display:none}
-.pet .shadow{transform-origin:110px 206px}
-/* travail */
-.mood-work .laptop{display:inline}
-.mood-work .arm{animation:type .32s ease-in-out infinite alternate}
-.mood-work .armR{animation-delay:.16s}
-@keyframes type{to{transform:translateY(-4px)}}
-.laptop .scr{animation:screen 2.4s ease-in-out infinite alternate}
-@keyframes screen{to{fill:#c4b5fd}}
-/* pause */
-.mood-break .cup{display:inline}
-.mood-break .eye-open{display:none}.mood-break .eye-happy{display:inline}
-.mood-break .armR{transform-origin:148px 150px;animation:sip 4s ease-in-out infinite}
-@keyframes sip{0%,60%,100%{transform:none}75%{transform:translate(-4px,-10px) rotate(-12deg)}}
-.mood-break .cup{transform-origin:150px 160px;animation:sip 4s ease-in-out infinite}
-.steam path{animation:steam 2.4s ease-in-out infinite;opacity:0}
-.steam path:nth-child(2){animation-delay:.8s}.steam path:nth-child(3){animation-delay:1.6s}
-@keyframes steam{0%{transform:translateY(6px);opacity:0}40%{opacity:.8}100%{transform:translateY(-16px);opacity:0}}
-/* dodo */
-.mood-off .eye-open,.mood-before .eye-open{display:none}
-.mood-off .eye-closed,.mood-before .eye-closed{display:inline}
-.mood-off .zzz,.mood-before .zzz{display:inline}
-.mood-off .head,.mood-before .head{animation:doze 4.5s ease-in-out infinite}
-.mood-off .body,.mood-before .body{animation-duration:4.5s}
-.mood-off .tail,.mood-before .tail{animation-duration:5s}
-@keyframes doze{0%,100%{transform:rotate(-6deg) translateY(6px)}50%{transform:rotate(-8deg) translateY(8px)}}
-.zzz text{font-weight:900;fill:#fff;animation:zz 3s ease-in-out infinite;opacity:0}
-.zzz text:nth-child(2){animation-delay:1s}.zzz text:nth-child(3){animation-delay:2s}
-@keyframes zz{0%{transform:translate(0,10px);opacity:0}30%{opacity:1}100%{transform:translate(10px,-14px);opacity:0}}
-/* presque fini */
-.mood-almost .hop{animation:bounce .7s ease-in-out infinite}
-.mood-almost .tail{animation-duration:.45s}
-.mood-almost .bag{display:inline}
-@keyframes bounce{50%{transform:translateY(-8px)}}
-/* fini ! */
-.mood-done .hop{animation:jump .9s cubic-bezier(.3,0,.4,1) infinite}
-.mood-done .shadow{animation:shadow .9s cubic-bezier(.3,0,.4,1) infinite}
-.mood-done .eye-open{display:none}.mood-done .eye-happy{display:inline}
-.mood-done .mouth-o{display:inline}.mood-done .mouth{display:none}
-.mood-done .tail{animation-duration:.35s}
-.mood-done .arm{animation:wave .45s ease-in-out infinite alternate}
-.mood-done .armL{transform-origin:72px 150px}.mood-done .armR{transform-origin:148px 150px;animation-direction:alternate-reverse}
-@keyframes jump{0%,100%{transform:translateY(0) scale(1.04,.96)}40%{transform:translateY(-34px) scale(.97,1.04)}}
-@keyframes shadow{40%{transform:scale(.6);opacity:.5}}
-@keyframes wave{from{transform:rotate(0)}to{transform:rotate(-35deg)}}
-.mood-done .armR{animation-name:waveR}@keyframes waveR{from{transform:rotate(0)}to{transform:rotate(35deg)}}
-/* caresse */
-.poke .hop{animation:squish .55s cubic-bezier(.2,1.5,.4,1)!important}
-@keyframes squish{0%{transform:scale(1)}30%{transform:scale(1.12,.86) translateY(14px)}60%{transform:scale(.94,1.08) translateY(-12px)}100%{transform:none}}
-.poke .eye-open{display:none!important}.poke .eye-happy{display:inline!important}.poke .eye-closed{display:none!important}
-
-/* ---------- Confettis ---------- */
-#confetti{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
-.cf{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
-@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--r))}}
-
-/* ---------- Réglages ---------- */
-.sheet{position:fixed;inset:0;z-index:20;background:var(--surface2);color:var(--sink);transform:translateY(100%);
-  transition:transform .45s cubic-bezier(.2,.9,.2,1),visibility 0s .45s;overflow-y:auto;-webkit-overflow-scrolling:touch;visibility:hidden}
-.sheet.open{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.9,.2,1)}
-.sheet .top{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:16px;
-  background:var(--surface2);border-bottom:1px solid var(--sline)}
-.sheet h2{margin:0;font-size:22px;font-weight:900}
-.done{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:800;padding:10px 18px;border-radius:14px;box-shadow:0 6px 16px rgba(255,122,89,.35)}
-.sheet .inner{max-width:520px;margin:0 auto;padding:4px 16px 60px}
-.sec{background:var(--surface);border-radius:22px;padding:16px;margin-top:14px;border:1px solid var(--sline)}
-.sec h3{margin:0 0 12px;font-size:16px;font-weight:900}
-.sec .hint{font-size:12.5px;color:var(--smuted);margin:-6px 0 12px}
-.pets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.petopt{border:2px solid var(--sline);border-radius:18px;padding:6px 4px 8px;text-align:center;font-weight:800;font-size:13px;background:var(--surface2);transition:transform .15s,border-color .2s}
-.petopt svg{width:100%;height:78px}
-.petopt.sel{border-color:var(--accent2);background:color-mix(in srgb,var(--accent) 16%,var(--surface))}
-.petopt:active{transform:scale(.95)}
-.swatches{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-.sw{width:38px;height:38px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--sline)}
-.sw.sel{box-shadow:0 0 0 3px var(--accent2)}
-label.f{display:block;font-size:13px;font-weight:800;color:var(--smuted);margin:12px 0 6px}
-input[type=text],input[type=time],input[type=number],select{width:100%;font:inherit;font-size:16px;font-weight:700;color:var(--sink);
-  background:var(--surface2);border:1.5px solid var(--sline);border-radius:14px;padding:11px 12px;outline:none;min-width:0}
-input:focus,select:focus{border-color:var(--accent2)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.days{display:flex;gap:6px;justify-content:space-between}
-.day{flex:1;height:44px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--sline);font-weight:900;color:var(--smuted)}
-.day.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
-.wrow{display:grid;grid-template-columns:44px 52px 1fr 1fr;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--sline)}
-.wrow:last-child{border-bottom:0}
-.wrow .wn{font-weight:800;font-size:14px}
-.wrow input[type=time]{padding:9px 6px;font-size:15px}
-.wrow.offd input[type=time]{opacity:.35}
-.brow{display:grid;grid-template-columns:1fr 104px 62px 36px;gap:6px;align-items:center;margin-bottom:8px}
-.brow input{padding:10px 8px;font-size:15px}
-.del{width:36px;height:40px;border-radius:12px;background:var(--surface2);color:#e5533d;font-weight:900;font-size:18px}
-.add{width:100%;padding:12px;border-radius:14px;border:2px dashed var(--sline);font-weight:800;color:var(--smuted);margin-top:4px}
-.seg3{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface2);border-radius:14px;padding:4px;gap:4px}
-.seg3 button{padding:10px 2px;border-radius:11px;font-weight:800;font-size:13px;white-space:nowrap;color:var(--smuted)}
-.seg3 button.sel{background:var(--surface);color:var(--sink);box-shadow:0 2px 8px rgba(0,0,0,.1)}
-.tg{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--sline);font-weight:700;gap:10px}
-.tg:last-child{border-bottom:0}
-.tg select{width:auto;padding:7px 10px;font-size:14px}
-.sw-t{position:relative;width:50px;height:30px;flex:none}
-.sw-t input{opacity:0;width:0;height:0}
-.sw-t span{position:absolute;inset:0;border-radius:20px;background:var(--sline);transition:.25s}
-.sw-t span::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:.25s}
-.sw-t input:checked+span{background:linear-gradient(135deg,var(--accent),var(--accent2))}
-.sw-t input:checked+span::after{transform:translateX(20px)}
-.btn2{width:100%;padding:13px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--sline);font-weight:800;margin-top:12px}
-.status{font-size:13px;color:var(--smuted);margin-top:10px;line-height:1.5}
-.status b{color:var(--sink)}
-.warn{color:#e5533d;font-weight:800}
-</style>
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div id="sky"><div class="stars"></div><div id="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
+<div id="sceneWrap">
+  <canvas id="scene"></canvas>
+  <div id="topbar">
+    <div class="shadowtxt"><div class="hello" id="hello">Bonjour</div><div class="date" id="date"></div></div>
+    <button class="pxbtn" id="btnSettings" aria-label="Réglages"><i class="ico" data-ico="gear"></i></button>
+  </div>
+</div>
+<div class="scene-edge"></div>
 
-<main id="home">
-  <header>
-    <div><div class="hello" id="hello">Bonjour 👋</div><div class="date" id="date"></div></div>
-    <button class="iconbtn" id="btnSettings" aria-label="Réglages">⚙️</button>
-  </header>
+<main id="hud">
+  <div class="dialog pxbox paper">
+    <div class="portrait pxbox"><canvas id="portrait" width="29" height="31"></canvas></div>
+    <div class="dlg-main"><div class="dlg-name" id="dlgName">Minou</div><div class="dlg-text" id="dlgText"></div></div>
+    <i class="ico dlg-arrow" data-ico="down"></i>
+  </div>
 
-  <section class="hero">
-    <div class="ringwrap">
-      <svg class="ring" viewBox="0 0 300 300">
-        <defs><linearGradient id="gradProg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe259"/><stop offset="1" stop-color="#ff7a59"/></linearGradient></defs>
-        <circle class="track" cx="150" cy="150" r="136"/>
-        <g id="ringBreaks"></g>
-        <circle class="prog" id="ringProg" cx="150" cy="150" r="136"/>
-        <circle class="dot" id="ringDot" r="7" cx="286" cy="150"/>
-      </svg>
-      <div class="bubble" id="bubble">Coucou !</div>
-      <div class="petbox" id="petbox"></div>
-      <div class="hearts" id="hearts"></div>
-    </div>
-    <div class="chip" id="chip">…</div>
-    <div class="big" id="big"></div>
-    <div class="sub" id="sub"></div>
-  </section>
+  <div class="clockbox">
+    <div class="chip pxbox" id="chip"><i class="ico" data-ico="bag" id="chipIco"></i><span id="chipText">…</span></div>
+    <canvas id="clock" role="timer" aria-live="off"></canvas>
+    <div class="clock-sub" id="sub"></div>
+  </div>
 
-  <section class="card journey">
-    <div class="title" id="jTitle">Le trajet de la journée</div>
-    <div class="row">
-      <div class="ico">🏢</div>
-      <div class="bar" id="bar"><div class="fill" id="barFill"></div><div class="walker" id="walker"><span id="walkerE">🐱</span></div></div>
-      <div class="ico">🏠</div>
-    </div>
-    <div class="times"><span id="tStart">--:--</span><span id="tEnd">--:--</span></div>
-  </section>
+  <div class="barbox pxbox">
+    <div class="bar-head"><span id="barLabel">TRAJET DU JOUR</span><span id="barPct">0 %</span></div>
+    <div class="pxbar" id="bar"><div class="fill" id="barFill"></div><div class="shine"></div></div>
+    <div class="bar-times"><span id="tStart">--:--</span><span id="tEnd">--:--</span></div>
+  </div>
 
-  <section class="grid">
-    <div class="tile"><div class="k">🏁 Fin prévue</div><div class="v" id="vEnd">--:--</div><div class="s" id="sEnd"></div></div>
-    <div class="tile"><div class="k" id="kBreak">☕ Prochaine pause</div><div class="v" id="vBreak">—</div><div class="s" id="sBreak"></div></div>
-    <div class="tile"><div class="k">💼 Travail effectif restant</div><div class="v" id="vEff">—</div><div class="s">pauses non comptées</div></div>
-    <div class="tile"><div class="k">📈 Progression</div><div class="v" id="vPct">0 %</div><div class="s" id="sPct"></div></div>
-  </section>
-  <div class="foot">Touche ton compagnon pour un câlin 💛</div>
+  <div class="tiles">
+    <div class="tile pxbox"><i class="ico" data-ico="flag"></i><div><div class="k">Fin prévue</div><div class="v" id="vEnd">--:--</div><div class="s" id="sEnd"></div></div></div>
+    <div class="tile pxbox"><i class="ico" data-ico="cup"></i><div><div class="k" id="kBreak">Prochaine pause</div><div class="v" id="vBreak">—</div><div class="s" id="sBreak"></div></div></div>
+    <div class="tile pxbox"><i class="ico" data-ico="bag"></i><div><div class="k">Travail effectif</div><div class="v" id="vEff">—</div><div class="s">pauses non comptées</div></div></div>
+    <div class="tile pxbox"><i class="ico" data-ico="hourglass"></i><div><div class="k">Déjà fait</div><div class="v" id="vPct">0 %</div><div class="s" id="sPct"></div></div></div>
+  </div>
+  <div class="hint">Touche ton compagnon · glisse le décor du doigt<br>touche le sol pour l'appeler · touche le ciel la nuit</div>
 </main>
 
 <div class="sheet" id="sheet">
-  <div class="top"><h2>Réglages</h2><button class="done" id="btnDone">✓ Terminé</button></div>
+  <div class="top"><h2>Réglages</h2><button class="pxbtn gold" id="btnDone">OK !</button></div>
   <div class="inner">
-    <div class="sec">
-      <h3>🐾 Mon compagnon</h3>
+    <div class="sec pxbox">
+      <h3><i class="ico" data-ico="paw"></i>Mon compagnon</h3>
       <div class="pets" id="petsGrid"></div>
       <label class="f">Couleur du pelage</label>
       <div class="swatches" id="swatches"></div>
       <label class="f" for="petName">Son prénom</label>
-      <input type="text" id="petName" maxlength="20" placeholder="Minou">
+      <input class="pxin" type="text" id="petName" maxlength="16" placeholder="Minou">
     </div>
 
-    <div class="sec">
-      <h3>⏰ Mes horaires</h3>
-      <div class="tg" style="padding-top:0">Horaires différents selon les jours<label class="sw-t"><input type="checkbox" id="perDay"><span></span></label></div>
+    <div class="sec pxbox">
+      <h3><i class="ico" data-ico="palm"></i>Le décor</h3>
+      <div class="themes" id="themes">
+        <button data-v="lagon"><i class="ico" data-ico="palm"></i>Lagon</button>
+        <button data-v="campagne"><i class="ico" data-ico="tree"></i>Campagne</button>
+      </div>
+      <div class="tg">Ciel<select class="pxin" id="ambiance"><option value="auto">Selon l'heure</option><option value="day">Toujours jour</option><option value="night">Toujours nuit</option></select></div>
+    </div>
+
+    <div class="sec pxbox">
+      <h3><i class="ico" data-ico="clock"></i>Mes horaires</h3>
+      <div class="tg" style="padding-top:0">Horaires différents selon les jours<label class="tog"><input type="checkbox" id="perDay"><span></span></label></div>
       <div id="sameHours">
         <div class="two">
-          <div><label class="f" for="start">Début</label><input type="time" id="start"></div>
-          <div><label class="f" for="end">Fin (départ)</label><input type="time" id="end"></div>
+          <div><label class="f" for="start">Début</label><input class="pxin" type="time" id="start"></div>
+          <div><label class="f" for="end">Fin (départ)</label><input class="pxin" type="time" id="end"></div>
         </div>
         <label class="f">Jours travaillés</label>
         <div class="days" id="days"></div>
       </div>
-      <div id="week" style="display:none;margin-top:8px"></div>
-      <div class="hint" style="margin:10px 0 0">Si la fin est avant le début, c'est un horaire de nuit : la journée se termine le lendemain. Les pauses en dehors des horaires d'un jour sont ignorées ce jour-là.</div>
+      <div id="week" style="display:none;margin-top:6px"></div>
+      <div class="hint2" style="margin:12px 0 0">Si la fin est avant le début, c'est un horaire de nuit : la journée se termine le lendemain. Une pause en dehors des horaires d'un jour est ignorée ce jour-là.</div>
     </div>
 
-    <div class="sec">
-      <h3>☕ Mes pauses</h3>
-      <div class="hint">Nom · heure de début · durée (minutes)</div>
+    <div class="sec pxbox">
+      <h3><i class="ico" data-ico="cup"></i>Mes pauses</h3>
+      <div class="hint2">Nom · heure de début · durée (minutes)</div>
       <div id="breaks"></div>
-      <button class="add" id="addBreak">＋ Ajouter une pause</button>
+      <button class="pxbtn add" id="addBreak">+ Ajouter une pause</button>
     </div>
 
-    <div class="sec">
-      <h3>🔔 Notifications</h3>
-      <div class="seg3" id="style">
-        <button data-v="pet">🐾 Compagnon</button><button data-v="classic">🔔 Classique</button><button data-v="off">🔕 Aucune</button>
-      </div>
+    <div class="sec pxbox">
+      <h3><i class="ico" data-ico="bell"></i>Notifications</h3>
+      <div class="seg3" id="style"><button data-v="pet">Compagnon</button><button data-v="classic">Classique</button><button data-v="off">Aucune</button></div>
       <div style="margin-top:8px">
-        <div class="tg">Début de journée<label class="sw-t"><input type="checkbox" data-n="start"><span></span></label></div>
-        <div class="tg">Début de chaque pause<label class="sw-t"><input type="checkbox" data-n="breakStart"><span></span></label></div>
-        <div class="tg">Fin de chaque pause<label class="sw-t"><input type="checkbox" data-n="breakEnd"><span></span></label></div>
-        <div class="tg"><span>Avant la fin&nbsp;<select id="beforeMin"><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 h</option></select></span><label class="sw-t"><input type="checkbox" data-n="beforeEnd"><span></span></label></div>
-        <div class="tg">L'heure de rentrer 🏠<label class="sw-t"><input type="checkbox" data-n="end"><span></span></label></div>
-        <div class="tg">Petits rappels réguliers<select id="periodic"><option value="0">Jamais</option><option value="30">Toutes les 30 min</option><option value="60">Toutes les heures</option><option value="120">Toutes les 2 h</option></select></div>
+        <div class="tg">Début de journée<label class="tog"><input type="checkbox" data-n="start"><span></span></label></div>
+        <div class="tg">Début de chaque pause<label class="tog"><input type="checkbox" data-n="breakStart"><span></span></label></div>
+        <div class="tg">Fin de chaque pause<label class="tog"><input type="checkbox" data-n="breakEnd"><span></span></label></div>
+        <div class="tg"><span>Avant la fin <select class="pxin" id="beforeMin"><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 h</option></select></span><label class="tog"><input type="checkbox" data-n="beforeEnd"><span></span></label></div>
+        <div class="tg">L'heure de rentrer<label class="tog"><input type="checkbox" data-n="end"><span></span></label></div>
+        <div class="tg">Petits rappels<select class="pxin" id="periodic"><option value="0">Jamais</option><option value="30">Toutes les 30 min</option><option value="60">Toutes les heures</option><option value="120">Toutes les 2 h</option></select></div>
       </div>
-      <button class="btn2" id="btnTest">📨 Envoyer une notification test</button>
+      <button class="pxbtn add" id="btnTest"><i class="ico" data-ico="bell"></i>Tester une notification</button>
       <div class="status" id="status"></div>
     </div>
 
-    <div class="sec">
-      <h3>🎨 Affichage</h3>
-      <div class="tg">Afficher les secondes<label class="sw-t"><input type="checkbox" id="showSeconds"><span></span></label></div>
-      <div class="tg">Vibrer quand je le caresse<label class="sw-t"><input type="checkbox" id="vibrate"><span></span></label></div>
-      <div class="tg">Ambiance du ciel<select id="ambiance"><option value="auto">Selon l'heure</option><option value="day">Toujours jour</option><option value="night">Toujours nuit</option></select></div>
+    <div class="sec pxbox">
+      <h3><i class="ico" data-ico="star"></i>Ambiance</h3>
+      <div class="tg">Sons 8-bit<label class="tog"><input type="checkbox" id="sound"><span></span></label></div>
+      <div class="tg">Vibrer quand je le caresse<label class="tog"><input type="checkbox" id="vibrate"><span></span></label></div>
+      <div class="tg">Afficher les secondes<label class="tog"><input type="checkbox" id="showSeconds"><span></span></label></div>
     </div>
-    <div class="foot" style="color:var(--smuted)">Bientôt la Maison · v1.1</div>
+    <div class="foot">Bientôt la Maison · v2.0 · pixel-art original</div>
   </div>
 </div>
 
 <div id="confetti"></div>
 
-<script>
-"use strict";
-const $ = s => document.querySelector(s);
-const bridge = window.Android || null;
-
-/* ================= Compagnons ================= */
-const PETS = {
-  cat:    {name:'Chat',    emoji:'🐱', cry:'Miaou',   furs:['#F4A259','#A3A3AE','#4A4650','#F3E3C7','#C9824F']},
-  dog:    {name:'Chien',   emoji:'🐶', cry:'Wouf',    furs:['#C68B59','#EED3A8','#7A5A40','#F7F3EE','#E2A84B']},
-  bunny:  {name:'Lapin',   emoji:'🐰', cry:'Pouic',   furs:['#F5F1EE','#D9C2A7','#A7A3A8','#F7C9D4','#8A7060']},
-  fox:    {name:'Renard',  emoji:'🦊', cry:'Yip yip', furs:['#F07B3F','#D9572B','#E9A46E','#B9B7C0','#8E5B3B']},
-  panda:  {name:'Panda',   emoji:'🐼', cry:'Mrrr',    furs:['#FFFFFF','#FFF2E0','#EEF0FA','#FBE3EC','#E6F4E6']},
-  hamster:{name:'Hamster', emoji:'🐹', cry:'Couic',   furs:['#F2B880','#FFF8F0','#C9A27E','#E8D3B0','#9C7A5B']},
-};
-const FLAVOR = {
-  cat:['Je ronronne pour toi 😺','Je garde le canapé au chaud.','Je vais dormir sur ton clavier…'],
-  dog:['Je remue la queue ! 🐕','J\'ai déjà rapporté tes chaussons 🥿','Je t\'attends derrière la porte !'],
-  bunny:['Je grignote une carotte 🥕','Mes oreilles frétillent !','Petits bonds de joie !'],
-  fox:['Rusé comme un renard 🦊','Ma queue touffue est prête pour un câlin !','Je guette ton retour.'],
-  panda:['Je mâchouille du bambou 🎋','Une petite roulade pour toi !','Câlin de panda en approche…'],
-  hamster:['Je cours dans ma roue ! 🎡','J\'ai rempli mes joues de graines 🌻','La roue tourne, le temps aussi !'],
-};
-const MSG = {
-  work:['On tient le bon bout !','Je compte les minutes avec toi ⏳','{cri} ! Tu bosses trop bien !','Encore un petit effort 💪','Pense à boire de l\'eau 💧','J\'ai hâte que tu rentres !','Chaque minute nous rapproche de la maison 🏠'],
-  break:['C\'est la pause ! Profite ☕','Étire-toi un peu 🙆','Pas de travail pendant la pause, promis ?','{cri}… on souffle un peu 😌'],
-  almost:['Plus que quelques minutes !!','Prépare ton sac 🎒','J\'entends la maison qui nous appelle 🏠','{cri} {cri} ! C\'est bientôt !'],
-  done:['On rentre à la maison !! 🏠','Bravo pour ta journée 🎉','Câlin de fin de journée ? 🤗','{cri} !!! Libéréééé !'],
-  before:['Zzz… pas encore l\'heure','Encore cinq minutes… 😴','Je fais le plein d\'énergie pour toi'],
-  off:['Zzz… c\'est repos ! 😴','Repose-toi bien 💛','Pas de boulot, que des câlins !'],
-};
-
-function shade(hex, amt){ // amt>0 vers blanc, <0 vers noir
-  const n=parseInt(hex.slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255;
-  const t=amt<0?0:255, p=Math.abs(amt);
-  r=Math.round(r+(t-r)*p); g=Math.round(g+(t-g)*p); b=Math.round(b+(t-b)*p);
-  return '#'+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1);
-}
-
-function petSVG(type, furIdx){
-  const P=PETS[type]||PETS.cat, f=P.furs[furIdx%P.furs.length]||P.furs[0];
-  const d=shade(f,-.2), belly=shade(f,.6), pink='#FF8FA3';
-  const dark=type==='panda'?'#2E2E38':d;
-  let ink='#2B2B33';
-  const armCol=type==='panda'?dark:shade(f,-.08), feetCol=type==='panda'?dark:d;
-  let tail='',tailO='160px 178px',earsB='',earsF='',extras='',deco='',nose='#E5627A';
-  switch(type){
-    case 'cat':
-      tail=`<path d="M158 178 C196 176 208 132 182 110" stroke="${f}" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M188 120 C 190 114 186 110 182 110" stroke="${d}" stroke-width="13" fill="none" stroke-linecap="round"/>`;
-      earsB=`<path d="M64 78 L70 30 L104 56 Z M156 78 L150 30 L116 56 Z" fill="${f}" stroke="${f}" stroke-width="6" stroke-linejoin="round"/><path d="M73 66 L76 43 L94 57 Z M147 66 L144 43 L126 57 Z" fill="${pink}" opacity=".75"/>`;
-      deco=`<path d="M64 104 l-22 -5 M64 111 l-22 2 M156 104 l22 -5 M156 111 l22 2" stroke="${ink}" stroke-width="2" opacity=".45" stroke-linecap="round"/>`;
-      break;
-    case 'dog':
-      tail=`<path d="M160 162 C180 154 188 138 182 122" stroke="${f}" stroke-width="12" fill="none" stroke-linecap="round"/>`; tailO='160px 162px';
-      extras=`<ellipse cx="110" cy="114" rx="24" ry="17" fill="${belly}"/>`;
-      earsF=`<ellipse cx="62" cy="98" rx="16" ry="32" transform="rotate(18 62 98)" fill="${d}"/><ellipse cx="158" cy="98" rx="16" ry="32" transform="rotate(-18 158 98)" fill="${d}"/>`;
-      deco=`<ellipse class="tongue" cx="110" cy="121" rx="5.5" ry="7" fill="#FF7B94"/>`; nose='#2B2B33';
-      break;
-    case 'bunny':
-      tail=`<circle cx="166" cy="184" r="13" fill="${belly}"/>`; tailO='158px 184px';
-      earsB=`<ellipse cx="86" cy="36" rx="13" ry="32" transform="rotate(-10 86 36)" fill="${f}"/><ellipse cx="134" cy="36" rx="13" ry="32" transform="rotate(10 134 36)" fill="${f}"/><ellipse cx="86" cy="38" rx="6" ry="23" transform="rotate(-10 86 38)" fill="${pink}" opacity=".7"/><ellipse cx="134" cy="38" rx="6" ry="23" transform="rotate(10 134 38)" fill="${pink}" opacity=".7"/>`;
-      deco=`<rect x="106" y="113" width="8" height="7" rx="2" fill="#fff" stroke="#e2dede"/>`;
-      break;
-    case 'fox':
-      tail=`<ellipse cx="180" cy="150" rx="17" ry="38" transform="rotate(28 180 150)" fill="${f}"/><ellipse cx="195" cy="122" rx="10" ry="13" transform="rotate(28 195 122)" fill="#fff"/>`; tailO='165px 185px';
-      earsB=`<path d="M60 82 L62 22 L106 54 Z M160 82 L158 22 L114 54 Z" fill="${f}" stroke="${f}" stroke-width="6" stroke-linejoin="round"/><path d="M70 68 L71 38 L94 56 Z M150 68 L149 38 L126 56 Z" fill="#3A2A2A" opacity=".75"/>`;
-      extras=`<path d="M56 98 Q80 132 110 120 Q140 132 164 98 Q152 142 110 142 Q68 142 56 98 Z" fill="#fff"/>`;
-      nose='#2B2B33';
-      break;
-    case 'panda':
-      tail=`<circle cx="164" cy="186" r="9" fill="${dark}"/>`;
-      earsB=`<circle cx="68" cy="52" r="18" fill="${dark}"/><circle cx="152" cy="52" r="18" fill="${dark}"/>`;
-      extras=`<ellipse cx="88" cy="94" rx="14" ry="18" transform="rotate(25 88 94)" fill="${dark}"/><ellipse cx="132" cy="94" rx="14" ry="18" transform="rotate(-25 132 94)" fill="${dark}"/>`;
-      nose='#2E2E38'; ink='#FFFFFF';
-      break;
-    case 'hamster':
-      tail=`<circle cx="166" cy="190" r="6" fill="${d}"/>`;
-      earsB=`<circle cx="70" cy="56" r="14" fill="${d}"/><circle cx="150" cy="56" r="14" fill="${d}"/><circle cx="70" cy="56" r="7" fill="${pink}" opacity=".7"/><circle cx="150" cy="56" r="7" fill="${pink}" opacity=".7"/>`;
-      extras=`<ellipse cx="72" cy="110" rx="21" ry="17" fill="${belly}"/><ellipse cx="148" cy="110" rx="21" ry="17" fill="${belly}"/>`;
-      break;
-  }
-  const pupils = type==='panda' ? `<circle cx="88" cy="93" r="3.6" fill="#1a1a22"/><circle cx="132" cy="93" r="3.6" fill="#1a1a22"/>` :
-    `<circle cx="90.5" cy="88.5" r="2.7" fill="#fff"/><circle cx="134.5" cy="88.5" r="2.7" fill="#fff"/>`;
-  const eyeOpen = type==='panda' ? `<ellipse cx="88" cy="92" rx="6.5" ry="7.5" fill="#fff"/><ellipse cx="132" cy="92" rx="6.5" ry="7.5" fill="#fff"/>${pupils}`
-    : `<ellipse cx="88" cy="92" rx="7" ry="8.5" fill="${ink}"/><ellipse cx="132" cy="92" rx="7" ry="8.5" fill="${ink}"/>${pupils}`;
-  return `<svg class="pet" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-  <ellipse class="shadow" cx="110" cy="207" rx="60" ry="8" fill="rgba(0,0,0,.18)"/>
-  <g class="hop" style="transform-origin:110px 205px">
-    <g class="tail" style="transform-origin:${tailO}">${tail}</g>
-    <g class="body">
-      <ellipse cx="110" cy="158" rx="58" ry="46" fill="${f}"/>
-      <ellipse cx="110" cy="166" rx="36" ry="32" fill="${belly}"/>
-      <ellipse cx="84" cy="200" rx="17" ry="9" fill="${feetCol}"/><ellipse cx="136" cy="200" rx="17" ry="9" fill="${feetCol}"/>
-    </g>
-    <g class="acc laptop">
-      <rect x="72" y="152" width="76" height="44" rx="6" fill="#4B5563"/>
-      <rect class="scr" x="76" y="156" width="68" height="36" rx="3" fill="#93C5FD"/>
-      <path d="M106 170 a4 4 0 0 1 8 0 a4 4 0 0 1 8 0 c0 5 -8 9 -8 9 s-8 -4 -8 -9z" transform="translate(-4 0)" fill="#fff" opacity=".9"/>
-      <rect x="60" y="194" width="100" height="8" rx="4" fill="#374151"/>
-    </g>
-    <g class="acc cup">
-      <g class="steam" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"><path d="M150 140 q-4 -6 0 -12"/><path d="M158 140 q-4 -6 0 -12"/><path d="M166 140 q-4 -6 0 -12"/></g>
-      <path d="M144 146 h28 v18 a11 11 0 0 1 -11 11 h-6 a11 11 0 0 1 -11 -11z" fill="#fff"/>
-      <path d="M172 150 a7 7 0 0 1 0 14" stroke="#fff" stroke-width="4" fill="none"/>
-      <ellipse cx="158" cy="147" rx="13" ry="3" fill="#8B5A3C"/>
-      <path d="M152 158 h12" stroke="#FF8FA3" stroke-width="3" stroke-linecap="round"/>
-    </g>
-    <g class="acc bag">
-      <rect x="140" y="160" width="34" height="30" rx="8" fill="#5B8DEF"/><path d="M148 160 v-6 a9 9 0 0 1 18 0 v6" stroke="#3E6FD1" stroke-width="4" fill="none"/>
-      <rect x="146" y="170" width="22" height="4" rx="2" fill="#fff" opacity=".7"/>
-    </g>
-    <g class="arm armL"><ellipse cx="72" cy="162" rx="12" ry="18" fill="${armCol}"/></g>
-    <g class="arm armR"><ellipse cx="148" cy="162" rx="12" ry="18" fill="${armCol}"/></g>
-    <g class="head">
-      <g class="ears">${earsB}</g>
-      <ellipse cx="110" cy="92" rx="56" ry="50" fill="${f}"/>
-      ${extras}
-      <g class="eyes">
-        <g class="eye-open">${eyeOpen}</g>
-        <g class="eye-closed"><path d="M80 93 q8 6 16 0 M124 93 q8 6 16 0" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/></g>
-        <g class="eye-happy"><path d="M80 96 q8 -11 16 0 M124 96 q8 -11 16 0" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/></g>
-      </g>
-      <ellipse cx="74" cy="112" rx="9" ry="5.5" fill="${pink}" opacity=".45"/><ellipse cx="146" cy="112" rx="9" ry="5.5" fill="${pink}" opacity=".45"/>
-      <path d="M104.5 104 h11 l-5.5 5.5 z" fill="${nose}" stroke="${nose}" stroke-width="2" stroke-linejoin="round"/>
-      <path class="mouth" d="M110 110 q-5 6 -10 2 M110 110 q5 6 10 2" stroke="${type==='panda'?'#2E2E38':'#2B2B33'}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-      <ellipse class="mouth-o" cx="110" cy="116" rx="6" ry="7" fill="#7A2E3A"/>
-      ${deco}
-      ${earsF}
-    </g>
-  </g>
-  <g class="zzz" font-family="sans-serif"><text x="158" y="54" font-size="16">z</text><text x="172" y="38" font-size="20">Z</text><text x="188" y="20" font-size="24">Z</text></g>
-</svg>`;
-}
-
-/* ================= Réglages ================= */
-const DEFAULTS = {
-  pet:'cat', petName:'Minou', fur:0, start:'08:00', end:'17:00',
-  days:[false,true,true,true,true,true,false],
-  breaks:[{label:'Pause café',start:'10:00',dur:15},{label:'Déjeuner',start:'12:00',dur:60},{label:'Pause',start:'15:30',dur:15}],
-  notif:{style:'pet',start:true,breakStart:true,breakEnd:true,beforeEnd:true,beforeMin:15,end:true,periodic:60},
-  showSeconds:true, vibrate:true, ambiance:'auto'
-};
-function load(){
-  let raw=''; try{ raw = bridge ? bridge.getSettings() : (localStorage.getItem('maison')||''); }catch(e){}
-  let s={}; try{ s = raw ? JSON.parse(raw) : {}; }catch(e){}
-  const out = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), s);
-  out.notif = Object.assign({}, DEFAULTS.notif, s.notif||{});
-  if(!Array.isArray(out.days)||out.days.length!==7) out.days=DEFAULTS.days.slice();
-  if(!Array.isArray(out.week)||out.week.length!==7) out.week=[0,1,2,3,4,5,6].map(()=>({start:out.start,end:out.end}));
-  out.perDay=!!out.perDay;
-  if(!Array.isArray(out.breaks)) out.breaks=[];
-  return {s:out, fresh:!raw};
-}
-let saveT=null;
-function save(){
-  clearTimeout(saveT);
-  saveT=setTimeout(()=>{ const j=JSON.stringify(S); try{ bridge ? bridge.saveSettings(j) : localStorage.setItem('maison',j); }catch(e){} refreshStatus(); },250);
-}
-const L = load(); let S = L.s; if(L.fresh) save();
-
-/* ================= Calcul du temps ================= */
-const MIN=60000, HOUR=3600000;
-const hm = s => { const [h,m]=(s||'0:0').split(':').map(Number); return (h||0)*60+(m||0); };
-const midnight = d => { const x=new Date(d); x.setHours(0,0,0,0); return x; };
-const at = (day, minutes) => { const x=new Date(day); x.setHours(0,minutes,0,0); return x.getTime(); };
-function shiftFor(day){
-  if(!S.days[day.getDay()]) return null;
-  const H = S.perDay ? S.week[day.getDay()] : S;
-  const st=at(day,hm(H.start)); let en=at(day,hm(H.end)); if(en<=st) en+=24*HOUR;
-  const breaks=S.breaks.map(b=>{ let bs=at(day,hm(b.start)); if(bs<st) bs+=24*HOUR;
-      return {label:b.label||'Pause', bs, be:Math.min(en, bs+Math.max(1,+b.dur||0)*MIN)}; })
-    .filter(b=>b.bs>=st&&b.bs<en).sort((a,b)=>a.bs-b.bs);
-  return {st,en,breaks};
-}
-function dayOff(base, off){ const d=new Date(base); d.setDate(d.getDate()+off); return d; }
-function computeState(now){
-  const today=midnight(now);
-  for(const o of [-1,0]){ const sh=shiftFor(dayOff(today,o)); if(sh&&now>=sh.st&&now<sh.en) return {kind:'work',sh}; }
-  let ended=null; for(const o of [-1,0]){ const sh=shiftFor(dayOff(today,o)); if(sh&&sh.en<=now) ended=sh; }
-  let next=null; for(let o=0;o<=8;o++){ const sh=shiftFor(dayOff(today,o)); if(sh&&sh.st>now){ next=sh; break; } }
-  if(ended && now-ended.en < 5*HOUR) return {kind:'done',sh:ended,next};
-  if(next && midnight(next.st).getTime()===today.getTime()) return {kind:'before',sh:next,next};
-  return {kind:'off',sh:next,next};
-}
-
-/* ================= Formatage ================= */
-const pad = n => String(n).padStart(2,'0');
-const hhmm = t => { const d=new Date(t); return pad(d.getHours())+':'+pad(d.getMinutes()); };
-function dur(ms){ const m=Math.max(0,Math.round(ms/MIN)); const h=Math.floor(m/60), r=m%60;
-  if(h>=24){ const j=Math.floor(h/24); return j+' j '+(h%24)+' h'; }
-  return h? (r? h+' h '+pad(r) : h+' h') : r+' min'; }
-const JOURS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
-function whenLabel(t){
-  const d=midnight(t).getTime(), today=midnight(Date.now()).getTime();
-  const diff=Math.round((d-today)/86400000);
-  const day = diff===0?"aujourd'hui":diff===1?'demain':JOURS[new Date(t).getDay()];
-  return day+' à '+hhmm(t);
-}
-function fill(str){ const P=PETS[S.pet]||PETS.cat; return str.replaceAll('{cri}',P.cry).replaceAll('{nom}',S.petName||P.name); }
-
-/* ================= Rendu ================= */
-const C = 2*Math.PI*136;
-$('#ringProg').style.strokeDasharray = C;
-let curMood='', curPet='', lastBubble=0, curKind='';
-
-function renderPet(){
-  const key=S.pet+'|'+S.fur;
-  if(key!==curPet){ $('#petbox').innerHTML=petSVG(S.pet,S.fur); curPet=key; $('#walkerE').textContent=(PETS[S.pet]||PETS.cat).emoji; curMood=''; }
-}
-function setMood(m){
-  const svg=$('#petbox svg'); if(!svg) return;
-  if(m!==curMood){ svg.classList.remove('mood-'+curMood); svg.classList.add('mood-'+m); curMood=m; say(); }
-}
-function say(text){
-  const pool=(MSG[curMood]||MSG.work).concat(FLAVOR[S.pet]||[]);
-  const t = text || pool[Math.floor(Math.random()*pool.length)];
-  const b=$('#bubble'); b.textContent=fill(t); b.style.animation='none'; void b.offsetWidth; b.style.animation='';
-  lastBubble=Date.now();
-}
-function setBig(ms){
-  const t=Math.max(0,ms), h=Math.floor(t/HOUR), m=Math.floor(t%HOUR/MIN), s=Math.floor(t%MIN/1000);
-  const sec = S.showSeconds ? `<small>${pad(s)}</small>` : '';
-  $('#big').className='big';
-  if(h>=24){ const j=Math.floor(h/24); $('#big').innerHTML=`${j}<i>j</i>${h%24}<i>h</i>`; return; }
-  $('#big').innerHTML = h ? `${h}<i>h</i>${pad(m)}<i>min</i>${sec}` : `${m}<i>min</i>${sec||''}`;
-}
-function setRing(p, sh){
-  p=Math.min(1,Math.max(0,p));
-  $('#ringProg').style.strokeDashoffset = C*(1-p);
-  const a=p*2*Math.PI; $('#ringDot').setAttribute('cx',150+136*Math.cos(a)); $('#ringDot').setAttribute('cy',150+136*Math.sin(a));
-  const g=$('#ringBreaks'); let html='';
-  if(sh){ const len=sh.en-sh.st; for(const b of sh.breaks){ const s0=(b.bs-sh.st)/len, s1=(b.be-sh.st)/len;
-    html+=`<circle class="brk" cx="150" cy="150" r="136" stroke-dasharray="${(s1-s0)*C} ${C}" stroke-dashoffset="${-s0*C}"/>`; } }
-  if(g.dataset.k!==html){ g.innerHTML=html; g.dataset.k=html; }
-}
-function setJourney(p, sh, title){
-  $('#jTitle').textContent=title;
-  p=Math.min(1,Math.max(0,p));
-  $('#barFill').style.width=(p*100)+'%'; $('#walker').style.left=(p*100)+'%';
-  const bar=$('#bar'); bar.querySelectorAll('.seg').forEach(e=>e.remove());
-  if(sh){ const len=sh.en-sh.st; for(const b of sh.breaks){ const e=document.createElement('div'); e.className='seg';
-      e.style.left=((b.bs-sh.st)/len*100)+'%'; e.style.width=((b.be-b.bs)/len*100)+'%'; bar.insertBefore(e,$('#walker')); }
-    $('#tStart').textContent=hhmm(sh.st); $('#tEnd').textContent=hhmm(sh.en);
-  } else { $('#tStart').textContent='--:--'; $('#tEnd').textContent='--:--'; }
-}
-
-function tick(){
-  const now=Date.now(), st=computeState(now), sh=st.sh;
-  renderPet();
-  const P=PETS[S.pet]||PETS.cat, nm=S.petName||P.name;
-  const h=new Date(now).getHours();
-  $('#hello').textContent=(h>=18||h<5?'Bonsoir':h>=12?'Bon après-midi':'Bonjour')+' 👋';
-  $('#date').textContent=new Date(now).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+' · '+nm+' '+P.emoji;
-
-  if(st.kind==='work'){
-    const rem=sh.en-now, len=sh.en-sh.st, p=(now-sh.st)/len;
-    const inB=sh.breaks.find(b=>now>=b.bs&&now<b.be), nextB=sh.breaks.find(b=>b.bs>now);
-    const bLeft=sh.breaks.reduce((a,b)=>a+Math.max(0,Math.min(b.be,sh.en)-Math.max(b.bs,now)),0);
-    const almost = rem <= Math.max(5,+S.notif.beforeMin||15)*MIN;
-    setMood(inB?'break':almost?'almost':'work');
-    setBig(rem);
-    $('#sub').textContent='avant de rentrer à la maison 🏠';
-    $('#chip').textContent = inB ? `☕ ${inB.label} · reprise à ${hhmm(inB.be)} (${dur(inB.be-now)})` : almost ? '🎒 Presque fini ! Prépare tes affaires' : '💼 Au travail';
-    setRing(p,sh); setJourney(p,sh,'Le trajet de la journée');
-    $('#vEnd').textContent=hhmm(sh.en); $('#sEnd').textContent='dans '+dur(rem);
-    if(inB){ $('#kBreak').textContent='☕ En pause'; $('#vBreak').textContent=hhmm(inB.be); $('#sBreak').textContent='fin de '+inB.label.toLowerCase()+' dans '+dur(inB.be-now); }
-    else if(nextB){ $('#kBreak').textContent='☕ Prochaine pause'; $('#vBreak').textContent=hhmm(nextB.bs); $('#sBreak').textContent=nextB.label+' dans '+dur(nextB.bs-now); }
-    else { $('#kBreak').textContent='☕ Pauses'; $('#vBreak').textContent='Fini'; $('#sBreak').textContent='plus de pause aujourd\'hui'; }
-    $('#vEff').textContent=dur(rem-bLeft);
-    $('#vPct').textContent=Math.floor(p*100)+' %'; $('#sPct').textContent=dur(now-sh.st)+' déjà passées';
-  } else if(st.kind==='done'){
-    setMood('done');
-    $('#big').className='big text'; $('#big').textContent='On rentre ! 🏠';
-    $('#sub').textContent = st.next ? 'Prochaine journée : '+whenLabel(st.next.st) : 'Bonne soirée !';
-    $('#chip').textContent='🎉 Journée terminée depuis '+dur(now-sh.en);
-    setRing(1,sh); setJourney(1,sh,'Arrivé·e à la maison !');
-    $('#vEnd').textContent=hhmm(sh.en); $('#sEnd').textContent='c\'est fait ✅';
-    $('#kBreak').textContent='☕ Pauses'; $('#vBreak').textContent=sh.breaks.length; $('#sBreak').textContent='pause(s) aujourd\'hui';
-    $('#vEff').textContent='0 min'; $('#vPct').textContent='100 %'; $('#sPct').textContent='bravo !';
-    if(curKind!=='done' && curKind!=='') confetti();
-  } else {
-    setMood(st.kind);
-    if(sh){
-      setBig(sh.st-now);
-      $('#sub').textContent = st.kind==='before' ? 'avant le début de ta journée' : 'avant ta prochaine journée ('+whenLabel(sh.st)+')';
-      $('#vEnd').textContent=hhmm(sh.en); $('#sEnd').textContent=st.kind==='before'?'aujourd\'hui':whenLabel(sh.en).split(' à ')[0];
-      const nb=sh.breaks[0];
-      $('#kBreak').textContent='☕ Première pause'; $('#vBreak').textContent=nb?hhmm(nb.bs):'—'; $('#sBreak').textContent=nb?nb.label:'aucune pause';
-      $('#vEff').textContent=dur(sh.en-sh.st-sh.breaks.reduce((a,b)=>a+b.be-b.bs,0)); $('#vPct').textContent='0 %'; $('#sPct').textContent='pas encore commencé';
-    } else {
-      $('#big').className='big text'; $('#big').textContent='Repos 😴'; $('#sub').textContent='Aucun jour travaillé n\'est réglé';
-      ['#vEnd','#vBreak','#vEff'].forEach(k=>$(k).textContent='—'); $('#sEnd').textContent=''; $('#sBreak').textContent='';
-      $('#vPct').textContent='—'; $('#sPct').textContent='';
-    }
-    $('#chip').textContent = st.kind==='before' ? '🌅 Ta journée n\'a pas encore commencé' : '😴 Jour de repos';
-    setRing(0,sh); setJourney(0,sh, st.kind==='before'?'Le trajet d\'aujourd\'hui':'Prochain trajet');
-  }
-  curKind=st.kind;
-  if(now-lastBubble>14000) say();
-}
-
-/* ================= Ciel ================= */
-const SKIES={
-  night:['#0f1535','#2b2f6e',true], dawn:['#f7797d','#fbd786',false], day:['#3d8bf2','#8fd0ff',false], dusk:['#5b4bb7','#ff8a65',true]
-};
-function updateSky(){
-  const d=new Date(), h=d.getHours()+d.getMinutes()/60;
-  let k = S.ambiance==='day'?'day':S.ambiance==='night'?'night': (h<6||h>=21)?'night':h<9?'dawn':h<17.5?'day':'dusk';
-  document.body.className="sky-"+k;
-  const [a,b]=SKIES[k]; document.documentElement.style.setProperty('--sky1',a); document.documentElement.style.setProperty('--sky2',b);
-  const sun=$('#sun'), W=innerWidth;
-  let f = k==='night' ? ((h>=21?h-21:h+3)/9) : (h-6)/15; f=Math.min(1,Math.max(0,f));
-  if(S.ambiance!=='auto') f=.75;
-  sun.style.left=(f*(W-90)+10)+'px'; sun.style.top=(30+Math.pow((f-.5)*2,2)*90)+'px';
-  const night = bridge ? bridge.isNight() : matchMedia('(prefers-color-scheme: dark)').matches;
-  document.documentElement.dataset.sheet = (night||k==='night') ? 'dark':'light';
-  if(bridge){ try{ bridge.setBarColor($('#sheet').classList.contains('open') ? getComputedStyle(document.documentElement).getPropertyValue('--surface2').trim() : a, $('#sheet').classList.contains('open') ? document.documentElement.dataset.sheet==='dark' : true); }catch(e){} }
-}
-
-/* ================= Interactions ================= */
-function hearts(){
-  const box=$('#hearts'), icons=['💛','💖','✨','💕',(PETS[S.pet]||PETS.cat).emoji];
-  for(let i=0;i<6;i++){ const e=document.createElement('span'); e.className='heart'; e.textContent=icons[i%icons.length];
-    e.style.left=(40+Math.random()*20)+'%'; e.style.top=(35+Math.random()*20)+'%';
-    e.style.setProperty('--dx',(Math.random()*120-60)+'px'); e.style.setProperty('--r',(Math.random()*60-30)+'deg');
-    e.style.animationDelay=(i*.07)+'s'; box.appendChild(e); setTimeout(()=>e.remove(),1800); }
-}
-function confetti(){
-  const box=$('#confetti'), cols=['#ffe259','#ff7a59','#7ef0b5','#8fd0ff','#ff8fa3','#c4b5fd'];
-  for(let i=0;i<70;i++){ const e=document.createElement('div'); e.className='cf';
-    e.style.left=Math.random()*100+'vw'; e.style.background=cols[i%cols.length];
-    e.style.setProperty('--dx',(Math.random()*160-80)+'px'); e.style.setProperty('--r',(Math.random()*900-450)+'deg');
-    e.style.animationDuration=(2.2+Math.random()*1.8)+'s'; e.style.animationDelay=(Math.random()*.6)+'s';
-    box.appendChild(e); setTimeout(()=>e.remove(),5000); }
-}
-$('#petbox').addEventListener('click',()=>{
-  const svg=$('#petbox svg'); svg.classList.remove('poke'); void svg.getBoundingClientRect(); svg.classList.add('poke');
-  setTimeout(()=>svg.classList.remove('poke'),650);
-  hearts(); say(); if(curMood==='done') confetti();
-  if(S.vibrate && bridge){ try{ bridge.vibrate(25); }catch(e){} }
-});
-
-/* ================= Écran réglages ================= */
-function openSheet(){ buildSettings(); $('#sheet').classList.add('open'); updateSky(); refreshStatus(); }
-function closeSheet(){ $('#sheet').classList.remove('open'); updateSky(); tick(); }
-$('#btnSettings').onclick=openSheet; $('#btnDone').onclick=closeSheet;
-window.onBack=()=>{ if($('#sheet').classList.contains('open')){ closeSheet(); return true; } return false; };
-window.onResumeApp=()=>{ updateSky(); tick(); refreshStatus(); };
-
-function buildSettings(){
-  const g=$('#petsGrid'); g.innerHTML='';
-  Object.keys(PETS).forEach(k=>{ const b=document.createElement('button'); b.className='petopt'+(S.pet===k?' sel':'');
-    b.innerHTML=petSVG(k, S.pet===k?S.fur:0)+PETS[k].name;
-    b.onclick=()=>{ if(S.pet!==k){ S.pet=k; S.fur=0; save(); buildSettings(); tick(); hearts(); } }; g.appendChild(b); });
-  const sw=$('#swatches'); sw.innerHTML='';
-  PETS[S.pet].furs.forEach((c,i)=>{ const b=document.createElement('button'); b.className='sw'+(S.fur===i?' sel':''); b.style.background=c;
-    b.onclick=()=>{ S.fur=i; save(); buildSettings(); tick(); }; sw.appendChild(b); });
-  $('#petName').value=S.petName; $('#start').value=S.start; $('#end').value=S.end;
-  const dd=$('#days'); dd.innerHTML='';
-  [[1,'L'],[2,'M'],[3,'M'],[4,'J'],[5,'V'],[6,'S'],[0,'D']].forEach(([i,l])=>{ const b=document.createElement('button');
-    b.className='day'+(S.days[i]?' on':''); b.textContent=l; b.onclick=()=>{ S.days[i]=!S.days[i]; b.classList.toggle('on'); save(); tick(); }; dd.appendChild(b); });
-  $('#perDay').checked=S.perDay;
-  $('#sameHours').style.display=S.perDay?'none':''; $('#week').style.display=S.perDay?'':'none';
-  const wk=$('#week'); wk.innerHTML='';
-  [1,2,3,4,5,6,0].forEach(i=>{ const r=document.createElement('div'); r.className='wrow'+(S.days[i]?'':' offd');
-    r.innerHTML=`<span class="wn">${JOURS[i][0].toUpperCase()+JOURS[i].slice(1,3)}.</span><label class="sw-t"><input type="checkbox"><span></span></label><input type="time"><input type="time">`;
-    const [, sw, ts, te]=r.children, cb=sw.querySelector('input');
-    cb.checked=S.days[i]; ts.value=S.week[i].start; te.value=S.week[i].end;
-    cb.onchange=()=>{ S.days[i]=cb.checked; r.classList.toggle('offd',!cb.checked); save(); tick(); };
-    ts.onchange=()=>{ if(ts.value){ S.week[i].start=ts.value; save(); tick(); } };
-    te.onchange=()=>{ if(te.value){ S.week[i].end=te.value; save(); tick(); } };
-    wk.appendChild(r); });
-  renderBreaks();
-  document.querySelectorAll('#style button').forEach(b=>b.classList.toggle('sel',b.dataset.v===S.notif.style));
-  document.querySelectorAll('[data-n]').forEach(i=>i.checked=!!S.notif[i.dataset.n]);
-  $('#beforeMin').value=String(S.notif.beforeMin); $('#periodic').value=String(S.notif.periodic);
-  $('#showSeconds').checked=S.showSeconds; $('#vibrate').checked=S.vibrate; $('#ambiance').value=S.ambiance;
-}
-function renderBreaks(){
-  const box=$('#breaks'); box.innerHTML='';
-  S.breaks.forEach((b,i)=>{ const r=document.createElement('div'); r.className='brow';
-    r.innerHTML=`<input type="text" value="" placeholder="Pause"><input type="time"><input type="number" min="1" max="600" inputmode="numeric"><button class="del" aria-label="Supprimer">✕</button>`;
-    const [lab,tm,du,del]=r.children; lab.value=b.label; tm.value=b.start; du.value=b.dur;
-    lab.oninput=()=>{ b.label=lab.value; save(); };
-    tm.onchange=()=>{ if(tm.value){ b.start=tm.value; save(); tick(); } };
-    du.oninput=()=>{ const v=parseInt(du.value,10); if(v>0){ b.dur=v; save(); tick(); } };
-    del.onclick=()=>{ S.breaks.splice(i,1); save(); renderBreaks(); tick(); };
-    box.appendChild(r); });
-}
-$('#addBreak').onclick=()=>{ S.breaks.push({label:'Pause',start:'15:00',dur:15}); save(); renderBreaks(); tick(); };
-$('#petName').oninput=e=>{ S.petName=e.target.value.trim()||PETS[S.pet].name; save(); tick(); };
-$('#start').onchange=e=>{ if(e.target.value){ S.start=e.target.value; save(); tick(); } };
-$('#perDay').onchange=e=>{ S.perDay=e.target.checked;
-  // en activant : on part des horaires communs pour chaque jour
-  if(S.perDay && !S.week.some(w=>w.start!==S.week[0].start||w.end!==S.week[0].end)) S.week=S.week.map(()=>({start:S.start,end:S.end}));
-  save(); buildSettings(); tick(); };
-$('#end').onchange=e=>{ if(e.target.value){ S.end=e.target.value; save(); tick(); } };
-document.querySelectorAll('#style button').forEach(b=>b.onclick=()=>{ S.notif.style=b.dataset.v; save();
-  document.querySelectorAll('#style button').forEach(x=>x.classList.toggle('sel',x===b)); });
-document.querySelectorAll('[data-n]').forEach(i=>i.onchange=()=>{ S.notif[i.dataset.n]=i.checked; save(); });
-$('#beforeMin').onchange=e=>{ S.notif.beforeMin=+e.target.value; save(); tick(); };
-$('#periodic').onchange=e=>{ S.notif.periodic=+e.target.value; save(); };
-$('#showSeconds').onchange=e=>{ S.showSeconds=e.target.checked; save(); tick(); };
-$('#vibrate').onchange=e=>{ S.vibrate=e.target.checked; save(); };
-$('#ambiance').onchange=e=>{ S.ambiance=e.target.value; save(); updateSky(); };
-$('#btnTest').onclick=()=>{
-  if(bridge){ clearTimeout(saveT); bridge.saveSettings(JSON.stringify(S)); bridge.testNotification(); }
-  else if('Notification' in window){ Notification.requestPermission().then(p=>{ if(p==='granted') new Notification(PETS[S.pet].emoji+' '+PETS[S.pet].cry+' ! Coucou !'); }); }
-  setTimeout(refreshStatus,600);
-};
-function refreshStatus(){
-  const el=$('#status'); if(!el) return;
-  if(!bridge){ el.innerHTML='Aperçu navigateur : les notifications programmées fonctionnent dans l\'application Android.'; return; }
-  let st={}; try{ st=JSON.parse(bridge.status()); }catch(e){}
-  let h='';
-  h += st.notif ? '✅ Notifications autorisées<br>' : '<span class="warn">⚠️ Notifications bloquées</span> — <a href="#" id="lnN">autoriser</a><br>';
-  if(st.exact===false) h += '<span class="warn">⚠️ Alarmes exactes désactivées</span> — <a href="#" id="lnE">activer</a><br>';
-  h += st.next ? 'Prochaine notification : <b>'+whenLabel(st.next)+'</b>' : 'Aucune notification programmée';
-  el.innerHTML=h;
-  const n=$('#lnN'); if(n) n.onclick=e=>{ e.preventDefault(); bridge.openNotifSettings(); };
-  const x=$('#lnE'); if(x) x.onclick=e=>{ e.preventDefault(); bridge.openExactAlarmSettings(); };
-}
-
-/* ================= Démarrage ================= */
-updateSky(); tick();
-setInterval(tick,1000); setInterval(updateSky,60000);
-addEventListener('resize',updateSky);
-</script>
+<script src="js/util.js"></script>
+<script src="js/pets.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

@@ -15,8 +15,10 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
+import android.util.Base64;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -26,13 +28,16 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private WebView web;
+    private boolean pageReady = false, edgeToEdge = false;
+    private int sysTop = 0, sysBottom = 0;
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         web = new WebView(this);
-        web.setBackgroundColor(0xFF5AA9F0);
+        web.setBackgroundColor(0xFF15172B);
         setContentView(web);
+        setupEdgeToEdge();
 
         WebSettings ws = web.getSettings();
         ws.setJavaScriptEnabled(true);
@@ -40,13 +45,58 @@ public class MainActivity extends Activity {
         ws.setAllowFileAccess(true);
         ws.setTextZoom(100);
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        web.setWebViewClient(new WebViewClient());
+        web.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView v, String url) {
+                pageReady = true;
+                pushInsets();
+            }
+        });
         web.addJavascriptInterface(new Bridge(this), "Android");
         web.loadUrl("file:///android_asset/index.html");
 
         Notifier.ensureChannel(this);
         requestNotifPermission();
         Scheduler.reschedule(this);
+    }
+
+    /** Le ciel pixel passe sous la barre d'état ; on transmet les marges à la page. */
+    private void setupEdgeToEdge() {
+        Window w = getWindow();
+        w.setStatusBarColor(Color.TRANSPARENT);
+        w.setNavigationBarColor(0xFF15172B);
+        if (Build.VERSION.SDK_INT >= 30) {
+            w.setDecorFitsSystemWindows(false);
+        } else {
+            w.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            View content = findViewById(android.R.id.content);
+            if (content != null && content.getParent() instanceof View) ((View) content.getParent()).setFitsSystemWindows(false);
+        }
+        if (Build.VERSION.SDK_INT >= 28) {
+            WindowManager.LayoutParams lp = w.getAttributes();
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            w.setAttributes(lp);
+        }
+        web.setOnApplyWindowInsetsListener((v, ins) -> {
+            sysTop = ins.getSystemWindowInsetTop();
+            sysBottom = ins.getSystemWindowInsetBottom();
+            v.post(this::pushInsets);
+            return ins;
+        });
+    }
+
+    private void pushInsets() {
+        if (!pageReady || web == null) return;
+        int[] loc = new int[2];
+        web.getLocationOnScreen(loc);
+        float d = getResources().getDisplayMetrics().density;
+        int top = Math.max(0, sysTop - loc[1]);
+        int decorH = getWindow().getDecorView().getHeight();
+        int below = Math.max(0, decorH - (loc[1] + web.getHeight()));
+        int bottom = Math.max(0, sysBottom - below);
+        edgeToEdge = top > 0;
+        if (!edgeToEdge) getWindow().setStatusBarColor(0xFF3F8CE8);
+        web.evaluateJavascript("window.setInsets&&window.setInsets(" + (top / d) + "," + (bottom / d) + ")", null);
     }
 
     private void requestNotifPermission() {
@@ -113,11 +163,11 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setBarColor(String hex, boolean lightIcons) {
             runOnUiThread(() -> {
+                if (edgeToEdge) return;
                 try {
                     int col = Color.parseColor(hex);
                     Window w = getWindow();
                     w.setStatusBarColor(col);
-                    w.setNavigationBarColor(col);
                     int flags = w.getDecorView().getSystemUiVisibility();
                     if (lightIcons) {
                         flags &= ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
@@ -128,6 +178,18 @@ public class MainActivity extends Activity {
                 } catch (Exception ignored) {
                 }
             });
+        }
+
+        /** Image pixel du compagnon (PNG en base64), utilisée dans les notifications. */
+        @JavascriptInterface
+        public void setPetIcon(String b64) {
+            try {
+                byte[] data = Base64.decode(b64, Base64.DEFAULT);
+                try (java.io.FileOutputStream fo = ctx.openFileOutput("pet.png", Context.MODE_PRIVATE)) {
+                    fo.write(data);
+                }
+            } catch (Exception ignored) {
+            }
         }
 
         @JavascriptInterface

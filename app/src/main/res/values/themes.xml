@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="sky">#FF5AA9F0</color>
-    <color name="launcher_bg">#FFFFB86B</color>
-    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/sky</item>
-        <item name="android:statusBarColor">@color/sky</item>
-        <item name="android:navigationBarColor">@color/sky</item>
-        <item name="android:colorAccent">#FFFF8A3D</item>
+    <color name="bg">#FF15172B</color>
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:colorAccent">#FFFFD34E</item>
     </style>
 </resources>

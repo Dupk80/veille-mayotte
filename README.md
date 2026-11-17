@@ -1,47 +1,62 @@
 # 🏠 Bientôt la Maison
 
-Application Android qui affiche **combien de temps il reste avant de quitter le travail et rentrer à la maison**, avec un petit compagnon animé qui vit ta journée avec toi.
+Application Android en **pixel-art** qui affiche le temps qu'il reste avant de quitter le travail et rentrer à la maison. Ton petit compagnon fait le trajet du bureau jusqu'à la maison au fil de ta journée.
 
 <p>
-<img src="docs/captures/work.png" width="200" alt="Au travail">
-<img src="docs/captures/break.png" width="200" alt="En pause">
-<img src="docs/captures/done.png" width="200" alt="Journée terminée">
+<img src="docs/captures/work.png" width="200" alt="Au travail, au bord du lagon">
+<img src="docs/captures/break.png" width="200" alt="En pause, à la campagne">
+<img src="docs/captures/done.png" width="200" alt="Journée terminée, feux d'artifice">
 <img src="docs/captures/night.png" width="200" alt="La nuit">
+<img src="docs/captures/morning.png" width="200" alt="Lever du soleil">
 <img src="docs/captures/settings.png" width="200" alt="Réglages">
 </p>
 
 ## 📲 Installer
 
 1. Télécharge **[`apk/BientotLaMaison.apk`](apk/BientotLaMaison.apk)** sur ton téléphone Android (8.0 ou plus récent).
-2. Ouvre le fichier et autorise l'installation depuis cette source si Android le demande.
+2. Ouvre le fichier et autorise l'installation si Android le demande.
 3. Au premier lancement, **autorise les notifications**.
 
 > Les mises à jour s'installent par-dessus l'ancienne version (même clé de signature) : tes réglages sont conservés.
 
-## ✨ Fonctions
+## ✨ Ce que fait l'appli
 
-- **Compte à rebours** en heures, minutes et secondes jusqu'à l'heure de départ, dans un anneau de progression où les pauses apparaissent en jaune.
-- **6 compagnons animés** au choix : chat, chien, lapin, renard, panda, hamster, avec 5 couleurs de pelage et un prénom.
-  - 💼 au travail : il tape sur son ordinateur
-  - ☕ en pause : il boit son café
-  - 🎒 presque fini : il sautille avec son sac
-  - 🎉 journée finie : il saute de joie, avec des confettis
-  - 😴 avant le travail ou jour de repos : il dort (Zzz)
-  - Touche-le pour un câlin : cœurs, petite vibration et nouveau message.
-- **Pauses** : autant que tu veux (nom, heure, durée). L'appli affiche la prochaine pause et le **travail effectif restant** (pauses non comptées).
-- **Trajet bureau → maison** : ton compagnon avance sur la barre au fil de la journée.
-- **Ciel animé** selon l'heure (aube, jour, crépuscule, nuit étoilée) : soleil, lune et nuages.
-- **Horaires réglables** : début, fin, jours travaillés, et **horaires différents pour chaque jour** si tu veux (ex. vendredi 8h–12h). Les horaires de nuit sont gérés (fin le lendemain).
+**Un décor vivant en pixel-art (dessiné à la main dans le code, 100 % original)**
+- Deux décors : **Lagon** (plage, palmiers, île volcanique, pirogue, dauphins, crabes, voilier, phare) et **Campagne** (collines, moulin à vent, mare, sapins, papillons, feuilles d'automne).
+- Le **ciel suit l'heure réelle** : aube, journée, coucher de soleil, nuit étoilée avec la lune et son reflet sur l'eau, et des étoiles filantes.
+- La nuit, **les fenêtres et les lampadaires s'allument**, avec des lucioles.
+- **Parallaxe** : fais glisser le décor du doigt pour l'explorer.
+- Tout tourne en continu à 60 images/seconde.
+
+**Ton compagnon**
+- 6 animaux au choix (chat, chien, lapin, renard, panda, hamster), 5 pelages chacun, et le prénom que tu veux.
+- Il **marche du bureau à la maison** au rythme de ton travail effectif, s'arrête aux **pauses** (parasol, banc, pique-nique), passe devant des **panneaux d'heures**, et :
+  - cligne des yeux, remue la queue, sautille et regarde autour de lui ;
+  - boit un verre pendant les pauses ;
+  - s'excite quand la fin approche ;
+  - fête la fin de journée devant la maison avec des **feux d'artifice** ;
+  - dort la nuit (Zzz).
+- **Touche-le** : il saute, fait parfois un salto ou une pirouette, envoie des cœurs, avec un petit son 8-bit et une vibration.
+- **Touche le sol** pour l'appeler, **touche le ciel** pour une étoile filante ou un feu d'artifice.
+- Il te parle dans une **boîte de dialogue façon jeu rétro**, avec le texte qui s'écrit lettre par lettre.
+- Petite fête à **chaque heure terminée**.
+
+**Le compte à rebours**
+- Gros chiffres pixel qui **roulent** à chaque seconde, avec une couleur différente selon le moment (travail, pause, presque fini, terminé, repos).
+- Barre du trajet avec les pauses, heure de fin, prochaine pause, **travail effectif restant** (sans les pauses) et progression.
+
+**Tout est réglable**
+- Heures de début et de fin, jours travaillés, **horaires différents selon les jours**, horaires de nuit.
+- Autant de pauses que tu veux (nom, heure, durée).
+- Décor, ciel (selon l'heure, toujours jour ou toujours nuit), sons 8-bit, vibration, affichage des secondes.
 
 ## 🔔 Notifications
 
-Tu choisis le style :
-- **🐾 Compagnon** : ton animal t'écrit (« 🐱 Miaou ! C'est la pause ! », « 🐶 Wouf !!! On rentre à la maison ! »…)
-- **🔔 Classique** : notifications sobres (« Début de pause : Déjeuner », « Fin de la journée »)
-- **🔕 Aucune**
+- **Compagnon** : c'est ton animal qui t'écrit, avec son portrait en pixel-art.
+- **Classique** : des notifications sobres.
+- **Aucune**.
 
-Chaque rappel s'active ou se désactive : début de journée, début et fin de chaque pause, X minutes avant la fin (5 à 60 min), l'heure de rentrer, et des petits rappels réguliers (toutes les 30 min, 1 h ou 2 h).
-Les rappels sont reprogrammés automatiquement après un redémarrage du téléphone.
+Chaque rappel s'active séparément : début de journée, début et fin de chaque pause, 5 à 60 min avant la fin, l'heure de rentrer, et des rappels réguliers. Ils sont reprogrammés automatiquement après un redémarrage du téléphone.
 
 ## 🛠️ Compiler soi-même
 
@@ -50,11 +65,16 @@ Les rappels sont reprogrammés automatiquement après un redémarrage du télép
 # → app/build/outputs/apk/release/app-release.apk
 ```
 
-Un workflow GitHub Actions (`.github/workflows/build-apk.yml`) compile aussi l'APK à chaque push (onglet *Actions* → artefact `BientotLaMaison-apk`).
+Un workflow GitHub Actions (`.github/workflows/build-apk.yml`) compile aussi l'APK à chaque push (onglet *Actions*, artefact `BientotLaMaison-apk`).
 
-Structure :
-- `app/src/main/assets/index.html` : interface, animations et compagnons (SVG + CSS)
-- `app/src/main/java/com/dupk/maison/` : WebView, alarmes (`Scheduler`), notifications (`Notifier`), redémarrage (`BootReceiver`)
+Structure de `app/src/main/assets/` :
+- `js/pets.js` : les compagnons, construits à partir de formes avec ombrage et contours automatiques.
+- `js/scene.js` : le décor (ciel, parallaxe, lumières, critters, feux d'artifice) et le comportement du compagnon.
+- `js/hud.js` : chiffres pixel qui roulent, boîte de dialogue, icônes.
+- `js/app.js` : réglages, calcul du temps, sons 8-bit, lien avec Android.
+- `fonts/PixelifySans.ttf` : police pixel sous licence libre SIL OFL (voir `fonts/OFL.txt`).
+
+Côté Android (`app/src/main/java/com/dupk/maison/`) : WebView en plein écran, alarmes (`Scheduler`), notifications (`Notifier`), redémarrage (`BootReceiver`).
 
 ## 🗄️ Ancien projet
 

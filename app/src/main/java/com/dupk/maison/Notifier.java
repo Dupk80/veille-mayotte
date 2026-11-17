@@ -7,8 +7,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
+
+import java.io.File;
 
 import org.json.JSONObject;
 
@@ -108,13 +112,42 @@ final class Notifier {
                 .setAutoCancel(true)
                 .setContentIntent(pi)
                 .setCategory(Notification.CATEGORY_REMINDER);
-        if (petStyle) b.setLargeIcon(emojiBitmap(e, Pets.color(pet)));
+        if (petStyle) {
+            Bitmap pix = petBitmap(c, Pets.color(pet));
+            b.setLargeIcon(pix != null ? pix : emojiBitmap(e, Pets.color(pet)));
+        }
 
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         try {
             nm.notify(type.hashCode(), b.build());
         } catch (SecurityException ignored) {
             // permission de notification refusée
+        }
+    }
+
+    /** Le compagnon en pixel-art (exporté par l'interface), agrandi sans flou. */
+    static Bitmap petBitmap(Context c, int color) {
+        try {
+            File f = new File(c.getFilesDir(), "pet.png");
+            if (!f.exists()) return null;
+            Bitmap src = BitmapFactory.decodeFile(f.getAbsolutePath());
+            if (src == null) return null;
+            int size = 192;
+            int k = Math.max(1, (size - 16) / Math.max(src.getWidth(), src.getHeight()));
+            int w = src.getWidth() * k, h = src.getHeight() * k;
+            Bitmap out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas cv = new Canvas(out);
+            Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
+            bg.setColor((color & 0x00FFFFFF) | 0x66000000);
+            cv.drawCircle(size / 2f, size / 2f, size / 2f, bg);
+            Paint p = new Paint();
+            p.setFilterBitmap(false);
+            p.setAntiAlias(false);
+            int x = (size - w) / 2, y = (size - h) / 2;
+            cv.drawBitmap(src, new Rect(0, 0, src.getWidth(), src.getHeight()), new Rect(x, y, x + w, y + h), p);
+            return out;
+        } catch (Exception ex) {
+            return null;
         }
     }
 
